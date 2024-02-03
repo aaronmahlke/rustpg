@@ -134,7 +134,7 @@ fn animate_player(
 }
 
 fn flip_player(mut query: Query<(&Player, &mut Transform, &mut TextureAtlasSprite)>) {
-    for (player, mut transform, mut sprite) in &mut query {
+    for (player, mut transform, _sprite) in &mut query {
         if player.state.facing.x < 0.0 {
             transform.scale.x = -PLAYER_SIZE;
         } else {
@@ -179,12 +179,12 @@ fn player_shoot(
     mut query: Query<(&Player, &Transform, &mut ShootTimer)>,
     keyboard_input: Res<Input<KeyCode>>,
     time: Res<Time>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+    _meshes: ResMut<Assets<Mesh>>,
+    _materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let mut shooting: bool = false;
     let mut direction: Vec3 = Vec3::ZERO;
-    for (player, mut transform, mut shoot_timer) in &mut query {
+    for (_player, transform, mut shoot_timer) in &mut query {
         if keyboard_input.pressed(KeyCode::Left) {
             shooting = true;
             direction = Vec3::new(-1.0, 0.0, 0.0);
