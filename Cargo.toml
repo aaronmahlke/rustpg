@@ -11,5 +11,5 @@ opt-level = 3
 
 [dependencies]
 bevy = { version = "0.12.1", features = ["dynamic_linking"] }
-bevy_rapier2d = "0.24.0"
+bevy_rapier2d = { version = "0.24.0", features = ["debug-render-2d"] }
 rand = "0.8.5"
