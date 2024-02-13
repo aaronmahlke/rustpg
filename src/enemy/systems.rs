@@ -8,8 +8,6 @@ use crate::base::{components::AnimationTimer, resources::*};
 use crate::hurt::{components::*, resources::*};
 use crate::player::components::{Bullet, Player};
 
-const ENEMY_AMOUNT: u32 = 10;
-
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
@@ -23,7 +21,7 @@ impl Plugin for EnemyPlugin {
 
 fn setup_enemy_timer(mut commands: Commands) {
     commands.spawn(EnemySpawnTimer(Timer::from_seconds(
-        2.0,
+        0.5,
         TimerMode::Repeating,
     )));
 }
@@ -33,17 +31,42 @@ fn spawn_enemies(
     mut query: Query<&mut EnemySpawnTimer>,
     sprite_sheet: Res<SpriteSheet>,
     window_query: Query<&Window, With<PrimaryWindow>>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
     time: Res<Time>,
+    gizmos: Gizmos,
 ) {
     let window = window_query.get_single().unwrap();
+    let (camera, camera_transform) = camera_query.single();
     for mut timer in query.iter_mut() {
         if timer.0.tick(time.delta()).just_finished() {
-            let random_x = (rand::random::<f32>() + window.width() / 2.0 + WINDOW_PADDING)
-                * if rand::random() { 1.0 } else { -1.0 };
-            let random_y = (rand::random::<f32>() - window.height() / 2.0 + WINDOW_PADDING)
-                * if rand::random() { 1.0 } else { -1.0 };
-            // clamp to out of window
-            println!("random: {}, {}", random_x, random_y);
+            let horizontal = rand::random::<bool>();
+            let flip_chance = if rand::random() { -1.0 } else { 1.0 };
+
+            println!("--------");
+            println!("Flipped: {:?}", flip_chance);
+
+            let random_coordinates = if horizontal {
+                println!("Horizontal");
+                let random_x = rand::random::<f32>() * window.width() - window.width() / 2.0;
+                let random_y = window.height() * flip_chance;
+                Vec2::new(random_x, random_y)
+            } else {
+                println!("Vertical");
+                let random_x = window.width() * flip_chance;
+                let random_y = rand::random::<f32>() * window.height() - window.height() / 2.0;
+                Vec2::new(random_x, random_y)
+            };
+
+            let Some(world_coordinates) =
+                camera.viewport_to_world_2d(camera_transform, random_coordinates)
+            else {
+                return;
+            };
+
+            println!("Random Coordinates: {:?}", random_coordinates);
+            println!("World Coordinates: {:?}", world_coordinates);
+
+            println!("--------");
             commands
                 .spawn((
                     SpriteSheetBundle {
@@ -54,7 +77,7 @@ fn spawn_enemies(
                             ..default()
                         },
                         transform: Transform {
-                            translation: Vec3::new(random_x, random_y, 0.0),
+                            translation: Vec3::new(world_coordinates.x, world_coordinates.y, 0.0),
                             scale: Vec3::splat(Enemy::default().stats.size),
                             ..default()
                         },
@@ -119,7 +142,6 @@ fn hurt_enemy(
                     if enemy.stats.health > 0.0 {
                         enemy.stats.health -= bullet.damage;
                     }
-                    println!("Enemy health: {}", enemy.stats.health);
                 }
             }
         }

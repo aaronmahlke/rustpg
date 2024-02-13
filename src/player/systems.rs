@@ -4,6 +4,7 @@ use bevy_rapier2d::prelude::*;
 use super::components::*;
 use crate::{
     base::{components::*, resources::*},
+    camera::components::Target,
     enemy::components::*,
     hurt::{components::*, resources::*},
 };
@@ -52,6 +53,7 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         Player::default(),
         ActiveEvents::COLLISION_EVENTS,
         LockedAxes::ROTATION_LOCKED,
+        Target,
     ));
 }
 
@@ -229,7 +231,7 @@ fn hurt_player(
 ) {
     for _ in collision_events.read() {
         for (player_entity, mut player) in &mut player_query {
-            for (enemy_entity, enemy) in &enemy_query {
+            for (enemy_entity, _enemy) in &enemy_query {
                 if let Some(_contact_pair) =
                     rapier_context.contact_pair(player_entity, enemy_entity)
                 {
@@ -244,7 +246,6 @@ fn hurt_player(
                     if player.stats.health > 0.0 {
                         player.stats.health -= 1.0;
                     }
-                    println!("Player health: {}", player.stats.health);
                 }
             }
         }
@@ -254,7 +255,8 @@ fn hurt_player(
 fn kill_player(mut commands: Commands, player_query: Query<(Entity, &Player), With<Player>>) {
     for (entity, player) in &player_query {
         if player.stats.health <= 0.0 {
-            commands.entity(entity).despawn()
+            // commands.entity(entity).despawn()
+            println!("Player is dead");
         }
     }
 }
