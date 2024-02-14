@@ -190,7 +190,7 @@ fn kill_enemy(
     for (entity, health, enemy_transform) in &enemy_query {
         if health.current <= 0.0 {
             event_drop_xp.send(XPDropEvent {
-                amount: 10,
+                amount: 1,
                 location: enemy_transform.translation,
             });
             commands.entity(entity).despawn();

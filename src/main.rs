@@ -1,6 +1,3 @@
-use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
-use bevy_rapier2d::prelude::*;
-
 pub mod base;
 pub mod camera;
 pub mod damagable;
@@ -10,18 +7,22 @@ pub mod health;
 pub mod hurt;
 pub mod particle;
 pub mod player;
+pub mod ui;
 pub mod window;
 pub mod xp;
 
-use crate::base::resources::SpriteSheetPlugin;
-use crate::camera::systems::CameraPlugin;
-use crate::debug::fps::FPSPlugin;
-use crate::enemy::systems::EnemyPlugin;
-use crate::hurt::systems::HurtPlugin;
-use crate::particle::systems::ParticlePlugin;
-use crate::player::systems::PlayerPlugin;
-use crate::window::systems::CustomWindowPlugin;
-use crate::xp::systems::XPPlugin;
+use base::resources::SpriteSheetPlugin;
+use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
+use bevy_rapier2d::prelude::*;
+use camera::systems::CameraPlugin;
+use debug::fps::FPSPlugin;
+use enemy::systems::EnemyPlugin;
+use hurt::systems::HurtPlugin;
+use particle::systems::ParticlePlugin;
+use player::systems::PlayerPlugin;
+use ui::systems::UIPlugin;
+use window::systems::CustomWindowPlugin;
+use xp::systems::XPPlugin;
 
 fn main() {
     App::new()
@@ -34,6 +35,7 @@ fn main() {
             CameraPlugin,
             XPPlugin,
             ParticlePlugin,
+            UIPlugin,
         ))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins((FrameTimeDiagnosticsPlugin, FPSPlugin))
