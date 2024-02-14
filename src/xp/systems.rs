@@ -1,4 +1,4 @@
-use crate::{base::components::Collectable, enemy::components::Enemy, player::components::Player};
+use crate::{base::components::Collectable, player::components::Player};
 
 use super::components::*;
 use bevy::prelude::*;
