@@ -5,6 +5,7 @@ use super::components::*;
 use super::resources::*;
 use crate::base::components::WINDOW_PADDING;
 use crate::base::{components::AnimationTimer, resources::*};
+use crate::damagable::components::Damageable;
 use crate::hurt::{components::*, resources::*};
 use crate::player::components::{Bullet, Player};
 
@@ -40,19 +41,21 @@ fn spawn_enemies(
     for mut timer in query.iter_mut() {
         if timer.0.tick(time.delta()).just_finished() {
             let horizontal = rand::random::<bool>();
-            let flip_chance = if rand::random() { -1.0 } else { 1.0 };
+            let x_flip = rand::random::<f32>().signum();
+            let y_flip = rand::random::<f32>().signum();
 
             println!("--------");
-            println!("Flipped: {:?}", flip_chance);
+            println!("Flipped X: {:?}", x_flip);
+            println!("Flipped Y: {:?}", y_flip);
 
             let random_coordinates = if horizontal {
                 println!("Horizontal");
                 let random_x = rand::random::<f32>() * window.width() - window.width() / 2.0;
-                let random_y = window.height() * flip_chance;
+                let random_y = window.height() * y_flip;
                 Vec2::new(random_x, random_y)
             } else {
                 println!("Vertical");
-                let random_x = window.width() * flip_chance;
+                let random_x = window.width() * x_flip;
                 let random_y = rand::random::<f32>() * window.height() - window.height() / 2.0;
                 Vec2::new(random_x, random_y)
             };
@@ -87,6 +90,7 @@ fn spawn_enemies(
                     Enemy::default(),
                     LockedAxes::ROTATION_LOCKED,
                     ActiveEvents::COLLISION_EVENTS,
+                    Damageable,
                 ))
                 .insert((
                     Collider::ball(Enemy::default().stats.size),

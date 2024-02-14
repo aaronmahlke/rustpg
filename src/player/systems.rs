@@ -5,6 +5,7 @@ use super::components::*;
 use crate::{
     base::{components::*, resources::*},
     camera::components::Target,
+    damagable::components::*,
     enemy::components::*,
     hurt::{components::*, resources::*},
 };
@@ -53,6 +54,7 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         Player::default(),
         ActiveEvents::COLLISION_EVENTS,
         LockedAxes::ROTATION_LOCKED,
+        Damageable,
         Target,
     ));
 }

@@ -4,6 +4,7 @@ use bevy_rapier2d::prelude::*;
 
 mod base;
 mod camera;
+mod damagable;
 mod enemy;
 mod fps;
 mod hurt;
@@ -15,7 +16,6 @@ use crate::camera::systems::*;
 use crate::enemy::systems::*;
 use crate::fps::*;
 use crate::hurt::systems::*;
-use crate::player::components::Player;
 use crate::player::systems::*;
 use crate::window::systems::*;
 
