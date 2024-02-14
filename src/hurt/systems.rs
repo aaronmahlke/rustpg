@@ -44,7 +44,6 @@ fn tick_hurt_timer(mut query: Query<&mut HurtTimer>, time: Res<Time>) {
 
 fn start_hurt(mut commands: Commands, query: Query<Entity, Added<Hurting>>) {
     for entity in query.iter() {
-        println!("Hurt entity: {:?}", entity);
         commands
             .entity(entity)
             .insert(HurtTimer(Timer::from_seconds(
@@ -57,8 +56,6 @@ fn start_hurt(mut commands: Commands, query: Query<Entity, Added<Hurting>>) {
 fn apply_damage(mut query: Query<(&mut Health, &Hurting, &HurtTimer), With<Damageable>>) {
     for (mut health, hurting, timer) in query.iter_mut() {
         if timer.0.just_finished() {
-            println!("Applying damage to entity: {:?}", hurting.0);
-            println!("Health before: {:?}", health.current);
             health.current -= hurting.0;
         }
     }

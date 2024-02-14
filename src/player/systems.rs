@@ -8,7 +8,8 @@ use crate::{
     damagable::components::*,
     enemy::components::*,
     health::components::Health,
-    hurt::{components::*},
+    hurt::components::*,
+    xp::components::XPCollector,
 };
 
 pub struct PlayerPlugin;
@@ -33,35 +34,45 @@ impl Plugin for PlayerPlugin {
 fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
     let player = Player::default();
 
-    commands.spawn((
-        SpriteSheetBundle {
-            texture_atlas: sprite_sheet.0.clone(),
-            sprite: TextureAtlasSprite::new(player.idle.first),
-            transform: Transform {
-                translation: Vec3::new(0.0, 0.0, 0.0),
-                scale: Vec3::splat(player.stats.size),
-                ..Default::default()
+    commands
+        .spawn((
+            SpriteSheetBundle {
+                texture_atlas: sprite_sheet.0.clone(),
+                sprite: TextureAtlasSprite::new(player.idle.first),
+                transform: Transform {
+                    translation: Vec3::new(0.0, 0.0, 0.0),
+                    scale: Vec3::splat(player.stats.size),
+                    ..Default::default()
+                },
+                ..default()
             },
-            ..default()
-        },
-        AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
-        ShootTimer(Timer::from_seconds(
-            player.stats.shot_speed,
-            TimerMode::Once,
-        )),
-        RigidBody::Dynamic,
-        Velocity::zero(),
-        Collider::ball(player.stats.size),
-        Player::default(),
-        ActiveEvents::COLLISION_EVENTS,
-        LockedAxes::ROTATION_LOCKED,
-        Damageable,
-        Target,
-        Health {
-            max: 3.0,
-            current: 3.0,
-        },
-    ));
+            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            ShootTimer(Timer::from_seconds(
+                player.stats.shot_speed,
+                TimerMode::Once,
+            )),
+            RigidBody::Dynamic,
+            Velocity::zero(),
+            Collider::ball(player.stats.size),
+            Player::default(),
+            ActiveEvents::COLLISION_EVENTS,
+            LockedAxes::ROTATION_LOCKED,
+            Damageable,
+            Target,
+            Health {
+                max: 3.0,
+                current: 3.0,
+            },
+        ))
+        .with_children(|children| {
+            children.spawn((
+                Collider::ball(100.0),
+                Sensor,
+                XPCollector,
+                ActiveEvents::COLLISION_EVENTS,
+                ActiveHooks::FILTER_INTERSECTION_PAIR,
+            ));
+        });
 }
 
 fn animate_player(

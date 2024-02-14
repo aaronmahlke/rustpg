@@ -1,4 +1,4 @@
-use crate::{base::components::Collectable, player::components::Player};
+use crate::{base::components::Collectable, enemy::components::Enemy, player::components::Player};
 
 use super::components::*;
 use bevy::prelude::*;
@@ -8,7 +8,7 @@ pub struct XPPlugin;
 
 impl Plugin for XPPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (spawn_xp, collect_xp))
+        app.add_systems(Update, (spawn_xp, (collect_xp, move_xp_to_player).chain()))
             .add_event::<XPDropEvent>();
     }
 }
@@ -41,18 +41,44 @@ fn spawn_xp(mut commands: Commands, mut event_xp_dropped: EventReader<XPDropEven
 fn collect_xp(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    mut xp_query: Query<(Entity, &mut XP), With<Collectable>>,
-    mut player_query: Query<(Entity, &mut Player)>,
+    mut xp_query: Query<Entity, With<XP>>,
+    mut collector_query: Query<Entity, With<XPCollector>>,
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
-        for (xp_entity, xp) in &mut xp_query {
-            for (player_entity, mut player) in &mut player_query {
-                if let Some(_contact_pair) = rapier_context.contact_pair(player_entity, xp_entity) {
-                    // despawn bullet
-                    commands.entity(xp_entity).despawn();
-                    player.stats.xp += xp.0;
+        for xp_entity in &mut xp_query {
+            for collector_entity in &mut collector_query {
+                if rapier_context.intersection_pair(collector_entity, xp_entity) == Some(true) {
+                    commands.entity(xp_entity).insert(CollectionAnimation);
                 }
+            }
+        }
+    }
+}
+
+fn move_xp_to_player(
+    mut commands: Commands,
+    mut xp_query: Query<(Entity, &XP, &mut Transform), With<CollectionAnimation>>,
+    mut player_query: Query<(&mut Player, &Transform), Without<XP>>,
+    time: Res<Time>,
+) {
+    for (xp_entity, xp, mut xp_transform) in &mut xp_query {
+        for (mut player, player_transform) in &mut player_query {
+            let acceleration = 10.0;
+            let smoothness = 0.9;
+            let direction = xp_transform.translation - player_transform.translation;
+            let acceleration = direction * acceleration;
+            let distance = direction.length();
+            // Apply smoothing
+            let velocity = acceleration * time.delta_seconds();
+            if distance > player.stats.size {
+                xp_transform.translation -= velocity / smoothness;
+                // let xp shrink as it gets closer to the player
+                let scale = distance / 100.0;
+                xp_transform.scale = Vec3::splat(scale);
+            } else {
+                commands.entity(xp_entity).despawn();
+                player.stats.xp += xp.0;
             }
         }
     }

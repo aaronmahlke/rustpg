@@ -35,6 +35,6 @@ fn main() {
         .add_plugins((FrameTimeDiagnosticsPlugin, FPSPlugin))
         // .add_systems(Update, spawn_background)
         .insert_resource(ClearColor(Color::rgb(0.0, 0.0, 0.0)))
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .run();
 }
