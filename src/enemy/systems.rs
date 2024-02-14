@@ -3,12 +3,16 @@ use bevy_rapier2d::prelude::*;
 
 use super::components::*;
 use super::resources::*;
+
+use crate::base::components::Collectable;
 use crate::base::components::WINDOW_PADDING;
 use crate::base::{components::AnimationTimer, resources::*};
 use crate::damagable::components::Damageable;
 use crate::health::components::Health;
-use crate::hurt::{components::*, resources::*};
+use crate::hurt::components::*;
 use crate::player::components::{Bullet, Player};
+use crate::xp::components::XPDropEvent;
+use crate::xp::components::XPDropped;
 
 pub struct EnemyPlugin;
 
@@ -23,7 +27,7 @@ impl Plugin for EnemyPlugin {
 
 fn setup_enemy_timer(mut commands: Commands) {
     commands.spawn(EnemySpawnTimer(Timer::from_seconds(
-        0.5,
+        2.0,
         TimerMode::Repeating,
     )));
 }
@@ -35,7 +39,7 @@ fn spawn_enemies(
     window_query: Query<&Window, With<PrimaryWindow>>,
     camera_query: Query<(&Camera, &GlobalTransform)>,
     time: Res<Time>,
-    gizmos: Gizmos,
+    _gizmos: Gizmos,
 ) {
     let window = window_query.get_single().unwrap();
     let (camera, camera_transform) = camera_query.single();
@@ -47,10 +51,10 @@ fn spawn_enemies(
 
             let random_coordinates = if horizontal {
                 let random_x = rand::random::<f32>() * window.width() - window.width() / 2.0;
-                let random_y = window.height() * y_flip;
+                let random_y = (window.height() + WINDOW_PADDING) * y_flip;
                 Vec2::new(random_x, random_y)
             } else {
-                let random_x = window.width() * x_flip;
+                let random_x = (window.width() + WINDOW_PADDING) * x_flip;
                 let random_y = rand::random::<f32>() * window.height() - window.height() / 2.0;
                 Vec2::new(random_x, random_y)
             };
@@ -123,7 +127,7 @@ fn hurt_enemy(
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
-        for (enemy_entity, enemy) in &mut enemy_query {
+        for (enemy_entity, _enemy) in &mut enemy_query {
             for (bullet_entity, bullet) in &bullet_query {
                 if let Some(_contact_pair) =
                     rapier_context.contact_pair(bullet_entity, enemy_entity)
@@ -137,10 +141,18 @@ fn hurt_enemy(
     }
 }
 
-fn kill_enemy(mut commands: Commands, enemy_query: Query<(Entity, &Health), With<Enemy>>) {
-    for (entity, health) in &enemy_query {
+fn kill_enemy(
+    mut commands: Commands,
+    enemy_query: Query<(Entity, &Health, &Transform), With<Enemy>>,
+    mut event_drop_xp: EventWriter<XPDropEvent>,
+) {
+    for (entity, health, enemy_transform) in &enemy_query {
         if health.current <= 0.0 {
-            commands.entity(entity).despawn()
+            event_drop_xp.send(XPDropEvent {
+                amount: 10,
+                location: enemy_transform.translation,
+            });
+            commands.entity(entity).despawn();
         }
     }
 }

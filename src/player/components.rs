@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{base::components::*, health::components::Health};
+use crate::base::components::*;
 
 #[derive(Component)]
 pub struct Bullet {
@@ -22,6 +22,7 @@ pub struct PlayerStats {
     pub size: f32,
     pub shot_speed: f32,
     pub move_speed: f32,
+    pub xp: u32,
 }
 
 pub struct PlayerState {
@@ -54,6 +55,7 @@ impl Default for Player {
                 size: 5.0,
                 shot_speed: 0.4,
                 move_speed: 300.0,
+                xp: 0,
             },
         }
     }

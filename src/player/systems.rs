@@ -8,7 +8,7 @@ use crate::{
     damagable::components::*,
     enemy::components::*,
     health::components::Health,
-    hurt::{components::*, resources::*},
+    hurt::{components::*},
 };
 
 pub struct PlayerPlugin;
@@ -237,7 +237,7 @@ fn hurt_player(
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
-        for (player_entity, mut player) in &mut player_query {
+        for (player_entity, _player) in &mut player_query {
             for (enemy_entity, _enemy) in &enemy_query {
                 if let Some(_contact_pair) =
                     rapier_context.contact_pair(player_entity, enemy_entity)
@@ -249,8 +249,8 @@ fn hurt_player(
     }
 }
 
-fn kill_player(mut commands: Commands, player_query: Query<(Entity, &Health), With<Player>>) {
-    for (entity, health) in &player_query {
+fn kill_player(_commands: Commands, player_query: Query<(Entity, &Health), With<Player>>) {
+    for (_entity, health) in &player_query {
         if health.current <= 0.0 {
             // commands.entity(entity).despawn()
             println!("Player is dead");
