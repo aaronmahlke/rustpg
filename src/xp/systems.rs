@@ -64,14 +64,17 @@ fn move_xp_to_player(
 ) {
     for (xp_entity, xp, mut xp_transform) in &mut xp_query {
         for (mut player, player_transform) in &mut player_query {
-            let acceleration = 10.0;
+            let acceleration = 5.0;
             let smoothness = 0.9;
             let direction = xp_transform.translation - player_transform.translation;
             let acceleration = direction * acceleration;
             let distance = direction.length();
             // Apply smoothing
             let velocity = acceleration * time.delta_seconds();
-            if distance > player.stats.size {
+            let velocity = velocity * (distance / 50.0);
+
+            // get faster as it gets closer to the player
+            if distance > player.stats.size + 40.0 {
                 xp_transform.translation -= velocity / smoothness;
                 // let xp shrink as it gets closer to the player
                 let scale = distance / 100.0;

@@ -4,15 +4,14 @@ use bevy_rapier2d::prelude::*;
 use super::components::*;
 use super::resources::*;
 
-use crate::base::components::Collectable;
 use crate::base::components::WINDOW_PADDING;
 use crate::base::{components::AnimationTimer, resources::*};
 use crate::damagable::components::Damageable;
 use crate::health::components::Health;
 use crate::hurt::components::*;
+use crate::particle::components::Particle;
 use crate::player::components::{Bullet, Player};
 use crate::xp::components::XPDropEvent;
-use crate::xp::components::XPDropped;
 
 pub struct EnemyPlugin;
 
@@ -75,7 +74,7 @@ fn spawn_enemies(
                             ..default()
                         },
                         transform: Transform {
-                            translation: Vec3::new(world_coordinates.x, world_coordinates.y, 0.0),
+                            translation: Vec3::new(world_coordinates.x, world_coordinates.y, 0.5),
                             scale: Vec3::splat(Enemy::default().stats.size),
                             ..default()
                         },
@@ -122,19 +121,61 @@ fn move_enemy(
 fn hurt_enemy(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    mut enemy_query: Query<(Entity, &mut Enemy), With<Enemy>>,
+    mut enemy_query: Query<(Entity, &mut Enemy, &Transform), (With<Enemy>, Without<Player>)>,
     bullet_query: Query<(Entity, &Bullet), With<Bullet>>,
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
-        for (enemy_entity, _enemy) in &mut enemy_query {
+        for (enemy_entity, _enemy, enemy_transform) in &mut enemy_query {
             for (bullet_entity, bullet) in &bullet_query {
-                if let Some(_contact_pair) =
-                    rapier_context.contact_pair(bullet_entity, enemy_entity)
+                if let Some(contact_pair) = rapier_context.contact_pair(bullet_entity, enemy_entity)
                 {
                     // despawn bullet
                     commands.entity(bullet_entity).despawn();
                     commands.entity(enemy_entity).insert(Hurting(bullet.damage));
+                    let mut normal: Vec2 = Vec2::ZERO;
+
+                    for manifold in contact_pair.manifolds() {
+                        normal = manifold.normal();
+                    }
+
+                    // Spawn 3-5 particles in the opposite direction of the collision normal
+
+                    let particle_amount = rand::random::<f32>() * 5.0 + 5.0;
+                    for _ in 0..particle_amount as u32 {
+                        let tangent = Vec2::new(normal.y, -normal.x);
+                        let spread = rand::random::<f32>() * 2.0 - 1.0;
+                        let speed = rand::random::<f32>() * 0.05;
+                        let velocity = (normal + tangent * spread * 3.0) * speed;
+                        let lifetime = rand::random::<f32>() * 0.5 + 0.3;
+
+                        commands.spawn((
+                            SpriteBundle {
+                                sprite: Sprite {
+                                    custom_size: Some(Vec2::splat(3.0)),
+                                    color: Color::rgba(1.0, 0.0, 0.0, 1.0),
+                                    ..default()
+                                },
+                                transform: Transform {
+                                    translation: Vec3::new(
+                                        enemy_transform.translation.x,
+                                        enemy_transform.translation.y,
+                                        0.6,
+                                    ),
+                                    ..default()
+                                },
+                                ..default()
+                            },
+                            RigidBody::Dynamic,
+                            Particle {
+                                initial_position: enemy_transform.translation,
+                                velocity,
+                                max_lifetime: lifetime,
+                                lifetime,
+                                ..default()
+                            },
+                        ));
+                    }
                 }
             }
         }
