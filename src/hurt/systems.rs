@@ -1,3 +1,6 @@
+use crate::damagable::components::Damageable;
+use crate::health::components::Health;
+
 use super::components::*;
 use super::resources::*;
 use bevy::prelude::*;
@@ -6,7 +9,17 @@ pub struct HurtPlugin;
 
 impl Plugin for HurtPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (tick_hurt_timer, flash_sprite_red, stop_hurt));
+        app.add_systems(
+            Update,
+            (
+                start_hurt,
+                flash_sprite_red,
+                tick_hurt_timer,
+                apply_damage,
+                stop_hurt,
+            )
+                .chain(),
+        );
     }
 }
 
@@ -29,13 +42,27 @@ fn tick_hurt_timer(mut query: Query<&mut HurtTimer>, time: Res<Time>) {
     }
 }
 
-// fn start_hurt(mut commands: Commands, query: Query<Entity, With<Hurting>>) {
-//     for entity in query.iter() {
-//         commands
-//             .entity(entity)
-//             .insert(HurtTimer(Timer::from_seconds(2.0, TimerMode::Repeating)));
-//     }
-// }
+fn start_hurt(mut commands: Commands, query: Query<(Entity), Added<Hurting>>) {
+    for entity in query.iter() {
+        println!("Hurt entity: {:?}", entity);
+        commands
+            .entity(entity)
+            .insert(HurtTimer(Timer::from_seconds(
+                HURT_DURATION,
+                TimerMode::Once,
+            )));
+    }
+}
+
+fn apply_damage(mut query: Query<(&mut Health, &Hurting, &HurtTimer), With<Damageable>>) {
+    for (mut health, hurting, timer) in query.iter_mut() {
+        if timer.0.just_finished() {
+            println!("Applying damage to entity: {:?}", hurting.0);
+            println!("Health before: {:?}", health.current);
+            health.current -= hurting.0;
+        }
+    }
+}
 
 fn stop_hurt(mut commands: Commands, query: Query<(Entity, &HurtTimer), With<Hurting>>) {
     for (entity, timer) in query.iter() {

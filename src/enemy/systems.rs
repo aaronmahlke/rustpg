@@ -6,6 +6,7 @@ use super::resources::*;
 use crate::base::components::WINDOW_PADDING;
 use crate::base::{components::AnimationTimer, resources::*};
 use crate::damagable::components::Damageable;
+use crate::health::components::Health;
 use crate::hurt::{components::*, resources::*};
 use crate::player::components::{Bullet, Player};
 
@@ -44,17 +45,11 @@ fn spawn_enemies(
             let x_flip = rand::random::<f32>().signum();
             let y_flip = rand::random::<f32>().signum();
 
-            println!("--------");
-            println!("Flipped X: {:?}", x_flip);
-            println!("Flipped Y: {:?}", y_flip);
-
             let random_coordinates = if horizontal {
-                println!("Horizontal");
                 let random_x = rand::random::<f32>() * window.width() - window.width() / 2.0;
                 let random_y = window.height() * y_flip;
                 Vec2::new(random_x, random_y)
             } else {
-                println!("Vertical");
                 let random_x = window.width() * x_flip;
                 let random_y = rand::random::<f32>() * window.height() - window.height() / 2.0;
                 Vec2::new(random_x, random_y)
@@ -66,10 +61,6 @@ fn spawn_enemies(
                 return;
             };
 
-            println!("Random Coordinates: {:?}", random_coordinates);
-            println!("World Coordinates: {:?}", world_coordinates);
-
-            println!("--------");
             commands
                 .spawn((
                     SpriteSheetBundle {
@@ -91,6 +82,10 @@ fn spawn_enemies(
                     LockedAxes::ROTATION_LOCKED,
                     ActiveEvents::COLLISION_EVENTS,
                     Damageable,
+                    Health {
+                        max: 10.0,
+                        current: 10.0,
+                    },
                 ))
                 .insert((
                     Collider::ball(Enemy::default().stats.size),
@@ -128,33 +123,23 @@ fn hurt_enemy(
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
-        for (enemy_entity, mut enemy) in &mut enemy_query {
+        for (enemy_entity, enemy) in &mut enemy_query {
             for (bullet_entity, bullet) in &bullet_query {
                 if let Some(_contact_pair) =
                     rapier_context.contact_pair(bullet_entity, enemy_entity)
                 {
                     // despawn bullet
                     commands.entity(bullet_entity).despawn();
-                    commands.entity(enemy_entity).insert(Hurting);
-                    commands
-                        .entity(enemy_entity)
-                        .insert(HurtTimer(Timer::from_seconds(
-                            HURT_DURATION,
-                            TimerMode::Repeating,
-                        )));
-
-                    if enemy.stats.health > 0.0 {
-                        enemy.stats.health -= bullet.damage;
-                    }
+                    commands.entity(enemy_entity).insert(Hurting(bullet.damage));
                 }
             }
         }
     }
 }
 
-fn kill_enemy(mut commands: Commands, enemy_query: Query<(Entity, &Enemy)>) {
-    for (entity, enemy) in &enemy_query {
-        if enemy.stats.health <= 0.0 {
+fn kill_enemy(mut commands: Commands, enemy_query: Query<(Entity, &Health), With<Enemy>>) {
+    for (entity, health) in &enemy_query {
+        if health.current <= 0.0 {
             commands.entity(entity).despawn()
         }
     }

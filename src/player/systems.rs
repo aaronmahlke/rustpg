@@ -7,6 +7,7 @@ use crate::{
     camera::components::Target,
     damagable::components::*,
     enemy::components::*,
+    health::components::Health,
     hurt::{components::*, resources::*},
 };
 
@@ -56,6 +57,10 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         LockedAxes::ROTATION_LOCKED,
         Damageable,
         Target,
+        Health {
+            max: 3.0,
+            current: 3.0,
+        },
     ));
 }
 
@@ -237,26 +242,16 @@ fn hurt_player(
                 if let Some(_contact_pair) =
                     rapier_context.contact_pair(player_entity, enemy_entity)
                 {
-                    commands.entity(player_entity).insert(Hurting);
-                    commands
-                        .entity(player_entity)
-                        .insert(HurtTimer(Timer::from_seconds(
-                            HURT_DURATION,
-                            TimerMode::Repeating,
-                        )));
-
-                    if player.stats.health > 0.0 {
-                        player.stats.health -= 1.0;
-                    }
+                    commands.entity(player_entity).insert(Hurting(1.0));
                 }
             }
         }
     }
 }
 
-fn kill_player(mut commands: Commands, player_query: Query<(Entity, &Player), With<Player>>) {
-    for (entity, player) in &player_query {
-        if player.stats.health <= 0.0 {
+fn kill_player(mut commands: Commands, player_query: Query<(Entity, &Health), With<Player>>) {
+    for (entity, health) in &player_query {
+        if health.current <= 0.0 {
             // commands.entity(entity).despawn()
             println!("Player is dead");
         }

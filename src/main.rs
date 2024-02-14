@@ -7,6 +7,7 @@ mod camera;
 mod damagable;
 mod enemy;
 mod fps;
+mod health;
 mod hurt;
 mod player;
 mod window;
