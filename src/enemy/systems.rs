@@ -7,6 +7,7 @@ use super::resources::*;
 use crate::base::components::WINDOW_PADDING;
 use crate::base::{components::AnimationTimer, resources::*};
 use crate::damagable::components::Damageable;
+use crate::gamestate::components::GameState;
 use crate::health::components::Health;
 use crate::hurt::components::*;
 use crate::particle::components::Particle;
@@ -17,18 +18,32 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_enemy_timer).add_systems(
-            Update,
-            (spawn_enemies, move_enemy, (hurt_enemy, kill_enemy).chain()),
-        );
+        app.add_systems(OnEnter(GameState::Game), setup_enemy_timer)
+            .add_systems(OnExit(GameState::Game), cleanup)
+            .add_systems(
+                Update,
+                (
+                    spawn_enemies,
+                    move_enemy,
+                    (hurt_enemy, kill_enemy)
+                        .chain()
+                        .run_if(in_state(GameState::Game)),
+                ),
+            );
     }
 }
 
 fn setup_enemy_timer(mut commands: Commands) {
     commands.spawn(EnemySpawnTimer(Timer::from_seconds(
-        2.0,
+        0.2,
         TimerMode::Repeating,
     )));
+}
+
+fn cleanup(mut commands: Commands, query: Query<Entity, With<EnemySpawnTimer>>) {
+    for entity in &mut query.iter() {
+        commands.entity(entity).despawn();
+    }
 }
 
 fn spawn_enemies(

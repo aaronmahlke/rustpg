@@ -1,4 +1,5 @@
 use crate::damagable::components::Damageable;
+use crate::gamestate::components::GameState;
 use crate::health::components::Health;
 
 use super::components::*;
@@ -18,7 +19,8 @@ impl Plugin for HurtPlugin {
                 apply_damage,
                 stop_hurt,
             )
-                .chain(),
+                .chain()
+                .run_if(in_state(GameState::Game)),
         );
     }
 }

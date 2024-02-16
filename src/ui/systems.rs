@@ -1,13 +1,13 @@
 use bevy::prelude::*;
 
-use crate::player::components::Player;
+use crate::{gamestate::components::GameState, player::components::Player};
 
-pub struct UIPlugin;
+pub struct GameUIPlugin;
 
-impl Plugin for UIPlugin {
+impl Plugin for GameUIPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, setup_ui)
-            .add_systems(Update, update_ui);
+        app.add_systems(OnEnter(GameState::Game), setup_ui)
+            .add_systems(Update, update_ui.run_if(in_state(GameState::Game)));
     }
 }
 

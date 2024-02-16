@@ -7,6 +7,7 @@ use crate::{
     camera::components::Target,
     damagable::components::*,
     enemy::components::*,
+    gamestate::components::GameState,
     health::components::Health,
     hurt::components::*,
     xp::components::XPCollector,
@@ -26,7 +27,8 @@ impl Plugin for PlayerPlugin {
                 update_bullets,
                 hurt_player,
                 kill_player,
-            ),
+            )
+                .run_if(in_state(GameState::Game)),
         );
     }
 }
@@ -189,7 +191,7 @@ fn player_shoot(
                     direction,
                     speed: 500.0,
                     size: 10.0,
-                    damage: 2.0,
+                    damage: 10.0,
                 };
 
                 // Rectangle
@@ -250,7 +252,8 @@ fn hurt_player(
     for _ in collision_events.read() {
         for (player_entity, _player) in &mut player_query {
             for (enemy_entity, _enemy) in &enemy_query {
-                if let Some(_contact_pair) = rapier_context.contact_pair(player_entity, enemy_entity)
+                if let Some(_contact_pair) =
+                    rapier_context.contact_pair(player_entity, enemy_entity)
                 {
                     commands.entity(player_entity).insert(Hurting(1.0));
                 }

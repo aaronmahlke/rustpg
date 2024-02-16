@@ -1,4 +1,6 @@
-use crate::{base::components::Collectable, player::components::Player};
+use crate::{
+    base::components::Collectable, gamestate::components::GameState, player::components::Player,
+};
 
 use super::components::*;
 use bevy::prelude::*;
@@ -8,8 +10,16 @@ pub struct XPPlugin;
 
 impl Plugin for XPPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (spawn_xp, (collect_xp, move_xp_to_player).chain()))
-            .add_event::<XPDropEvent>();
+        app.add_systems(
+            Update,
+            (
+                spawn_xp,
+                (collect_xp, move_xp_to_player)
+                    .chain()
+                    .run_if(in_state(GameState::Game)),
+            ),
+        )
+        .add_event::<XPDropEvent>();
     }
 }
 

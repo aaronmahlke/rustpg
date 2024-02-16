@@ -1,3 +1,5 @@
+use crate::gamestate::components::GameState;
+
 use super::components::*;
 use bevy::prelude::*;
 
@@ -5,7 +7,7 @@ pub struct ParticlePlugin;
 
 impl Plugin for ParticlePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_particle);
+        app.add_systems(Update, update_particle.run_if(in_state(GameState::Game)));
     }
 }
 
