@@ -4,6 +4,7 @@ use bevy_rapier2d::prelude::*;
 
 use super::components::*;
 use crate::{
+    audio::components::{PlaySoundEffectEvent, SoundEffectType},
     camera::components::Target,
     damagable::components::*,
     enemy::components::*,
@@ -188,6 +189,7 @@ fn player_shoot(
     time: Res<Time>,
     _meshes: ResMut<Assets<Mesh>>,
     _materials: ResMut<Assets<ColorMaterial>>,
+    mut event_sound: EventWriter<PlaySoundEffectEvent>,
 ) {
     let mut shooting: bool = false;
     let mut direction: Vec3 = Vec3::ZERO;
@@ -218,6 +220,10 @@ fn player_shoot(
             let duration: f32 = shoot_timer.elapsed_secs();
 
             if duration >= player.stats.shot_speed {
+                // send player sound event
+                event_sound.send(PlaySoundEffectEvent {
+                    sound: SoundEffectType::PlayerShoot,
+                });
                 shoot_timer.reset();
                 // spawn bullet
                 let bullet = Bullet {

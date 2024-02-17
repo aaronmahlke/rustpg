@@ -24,19 +24,17 @@ impl Plugin for EnemyPlugin {
             .add_systems(OnExit(GameState::Game), cleanup)
             .add_systems(
                 Update,
-                (
+                ((
                     spawn_enemies,
                     move_enemy,
-                    (
-                        hurt_enemy,
-                        flip_enemy,
-                        animate_enemy,
-                        kill_enemy,
-                        cleanup_dead,
-                    )
-                        .chain()
-                        .run_if(in_state(GameState::Game)),
-                ),
+                    hurt_enemy,
+                    flip_enemy,
+                    animate_enemy,
+                    kill_enemy,
+                    cleanup_dead,
+                )
+                    .chain()
+                    .run_if(in_state(GameState::Game)),),
             );
     }
 }
