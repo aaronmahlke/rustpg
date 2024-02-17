@@ -7,6 +7,7 @@ use bevy_rapier2d::prelude::*;
 use super::components::*;
 use super::resources::*;
 
+use crate::audio::components::{PlaySoundEffectEvent, SoundEffectType};
 use crate::base::components::WINDOW_PADDING;
 use crate::damagable::components::Damageable;
 use crate::game::components::GameState;
@@ -238,6 +239,7 @@ fn hurt_enemy(
     parent_query: Query<&Parent, &Transform>,
     damage_query: Query<(Entity, &Damage), With<Bullet>>,
     rapier_context: Res<RapierContext>,
+    mut sound_event: EventWriter<PlaySoundEffectEvent>,
 ) {
     for _ in collision_events.read() {
         for enemy_collider_entity in &mut enemy_collider_query {
@@ -257,6 +259,11 @@ fn hurt_enemy(
                         for manifold in contact_pair.manifolds() {
                             normal = manifold.normal();
                         }
+
+                        // play sound effect
+                        sound_event.send(PlaySoundEffectEvent {
+                            sound: SoundEffectType::EnemyHurt,
+                        });
 
                         // Spawn 3-5 particles in the opposite direction of the collision normal
 

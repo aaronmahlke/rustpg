@@ -1,5 +1,8 @@
 use crate::{
-    base::components::Collectable, game::components::GameState, player::components::Player,
+    audio::components::{PlaySoundEffectEvent, SoundEffectType},
+    base::components::Collectable,
+    game::components::GameState,
+    player::components::Player,
 };
 
 use super::components::*;
@@ -71,6 +74,7 @@ fn move_xp_to_player(
     mut xp_query: Query<(Entity, &XP, &mut Transform), With<CollectionAnimation>>,
     mut player_query: Query<(&mut Player, &Transform), Without<XP>>,
     time: Res<Time>,
+    mut sound_event: EventWriter<PlaySoundEffectEvent>,
 ) {
     for (xp_entity, xp, mut xp_transform) in &mut xp_query {
         for (mut player, player_transform) in &mut player_query {
@@ -90,6 +94,9 @@ fn move_xp_to_player(
                 let scale = distance / 100.0;
                 xp_transform.scale = Vec3::splat(scale);
             } else {
+                sound_event.send(PlaySoundEffectEvent {
+                    sound: SoundEffectType::XPCollect,
+                });
                 commands.entity(xp_entity).despawn();
                 player.stats.xp += xp.0;
             }

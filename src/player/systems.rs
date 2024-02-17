@@ -289,6 +289,7 @@ fn hurt_player(
     parent_query: Query<&Parent>,
     damage_query: Query<(Entity, &Damage), With<TagEnemy>>,
     rapier_context: Res<RapierContext>,
+    mut sound_event: EventWriter<PlaySoundEffectEvent>,
 ) {
     for _ in collision_events.read() {
         for player_collider_entity in &mut player_collider_query {
@@ -297,6 +298,9 @@ fn hurt_player(
                     rapier_context.contact_pair(damage_entity, player_collider_entity)
                 {
                     for parent in parent_query.iter_ancestors(player_collider_entity) {
+                        sound_event.send(PlaySoundEffectEvent {
+                            sound: SoundEffectType::PlayerHurt,
+                        });
                         commands.entity(parent).insert(Hurting(damage_source.0));
                     }
                 }
