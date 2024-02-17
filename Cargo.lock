@@ -388,6 +388,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_asepritesheet"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a91b8231714a073bae4d944fce9ee968af065621c5d0dc6ceb96b6ec2a3aa7c0"
+dependencies = [
+ "bevy",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "bevy_asset"
 version = "0.12.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3080,6 +3091,7 @@ name = "rustpg"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "bevy_asepritesheet",
  "bevy_rapier2d",
  "rand",
 ]

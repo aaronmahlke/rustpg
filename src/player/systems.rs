@@ -1,14 +1,14 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::Anchor};
+use bevy_asepritesheet::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use super::components::*;
 use crate::{
-    base::{components::*, resources::*},
     camera::components::Target,
     damagable::components::*,
     enemy::components::*,
     gamestate::components::GameState,
-    health::components::Health,
+    health::components::{Dead, Health},
     hurt::components::*,
     xp::components::XPCollector,
 };
@@ -17,46 +17,64 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_player).add_systems(
-            Update,
-            (
-                animate_player,
-                move_player,
-                flip_player,
-                player_shoot,
-                update_bullets,
-                hurt_player,
-                kill_player,
-            )
-                .run_if(in_state(GameState::Game)),
-        );
+        app.add_plugins(AsepritesheetPlugin::new(&["sprite.json"]))
+            .add_systems(OnEnter(GameState::Game), spawn_player)
+            .add_systems(
+                Update,
+                (
+                    move_player,
+                    animate_player,
+                    flip_player,
+                    player_shoot,
+                    update_bullets,
+                    hurt_player,
+                    kill_player,
+                )
+                    .run_if(in_state(GameState::Game)),
+            );
     }
 }
 
-fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
+fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+    let spritesheet_handle = load_spritesheet_then(
+        &mut commands,
+        &asset_server,
+        "npc_4.sprite.json",
+        Anchor::Center,
+        |sheet| {
+            let handle_death = sheet.get_anim_handle("death");
+
+            if let Ok(anim_death) = sheet.get_anim_mut(&handle_death) {
+                anim_death.end_action = AnimEndAction::Pause;
+            }
+        },
+    );
+
     let player = Player::default();
 
     commands
         .spawn((
-            SpriteSheetBundle {
-                texture_atlas: sprite_sheet.0.clone(),
-                sprite: TextureAtlasSprite::new(player.idle.first),
-                transform: Transform {
-                    translation: Vec3::new(0.0, 0.0, 0.0),
-                    scale: Vec3::splat(player.stats.size),
-                    ..Default::default()
+            Player::default(),
+            AnimatedSpriteBundle {
+                spritesheet: spritesheet_handle,
+                sprite_bundle: SpriteSheetBundle {
+                    transform: Transform {
+                        translation: Vec3::new(0.0, 0.0, 0.0),
+                        scale: Vec3::splat(player.stats.size),
+                        ..Default::default()
+                    },
+                    ..default()
                 },
                 ..default()
             },
-            AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating)),
+            AnimEventSender,
             ShootTimer(Timer::from_seconds(
                 player.stats.shot_speed,
                 TimerMode::Once,
             )),
             RigidBody::Dynamic,
             Velocity::zero(),
-            Collider::ball(player.stats.size),
-            Player::default(),
+            Collider::ball(player.stats.size - 2.0),
             ActiveEvents::COLLISION_EVENTS,
             LockedAxes::ROTATION_LOCKED,
             Damageable,
@@ -77,32 +95,9 @@ fn spawn_player(mut commands: Commands, sprite_sheet: Res<SpriteSheet>) {
         });
 }
 
-fn animate_player(
-    time: Res<Time>,
-    mut query: Query<(&Player, &mut AnimationTimer, &mut TextureAtlasSprite)>,
+fn flip_player(
+    mut query: Query<(&Player, &mut Transform, &mut TextureAtlasSprite), Without<Dead>>,
 ) {
-    for (player, mut timer, mut sprite) in &mut query {
-        timer.0.tick(time.delta());
-
-        if timer.0.just_finished() {
-            if player.state.moving {
-                sprite.index = if sprite.index >= player.walk.last {
-                    player.walk.first
-                } else {
-                    sprite.index + 1
-                };
-            } else {
-                sprite.index = if sprite.index >= player.idle.last {
-                    player.idle.first
-                } else {
-                    sprite.index + 1
-                };
-            }
-        }
-    }
-}
-
-fn flip_player(mut query: Query<(&Player, &mut Transform, &mut TextureAtlasSprite)>) {
     for (player, mut transform, _sprite) in &mut query {
         if player.state.facing.x < 0.0 {
             transform.scale.x = -player.stats.size;
@@ -114,7 +109,7 @@ fn flip_player(mut query: Query<(&Player, &mut Transform, &mut TextureAtlasSprit
 
 fn move_player(
     keyboard_input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Player, &mut Velocity)>,
+    mut query: Query<(&mut Player, &mut Velocity), Without<Dead>>,
 ) {
     for (mut player, mut vel) in &mut query {
         let up = keyboard_input.any_pressed([KeyCode::W]);
@@ -145,6 +140,20 @@ fn move_player(
         }
 
         vel.linvel = move_delta * player.stats.move_speed;
+    }
+}
+
+fn animate_player(mut query: Query<(&mut SpriteAnimator, &Health, &Player)>) {
+    for (mut sprite_animator, health, player) in &mut query {
+        sprite_animator.time_scale = 1.0;
+        // animate player
+        if health.current <= 0.0 {
+            sprite_animator.set_anim_index(4);
+        } else if player.state.moving {
+            sprite_animator.set_anim_index(0);
+        } else {
+            sprite_animator.set_anim_index(2);
+        }
     }
 }
 
@@ -214,6 +223,7 @@ fn player_shoot(
                     Collider::ball(bullet.size),
                     BulletDespawnTimer(Timer::from_seconds(3.0, TimerMode::Once)),
                     ActiveEvents::COLLISION_EVENTS,
+                    Damage(bullet.damage),
                     bullet,
                 ));
             }
@@ -246,26 +256,34 @@ fn hurt_player(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     mut player_query: Query<(Entity, &mut Player), With<Player>>,
-    enemy_query: Query<(Entity, &Enemy), With<Enemy>>,
+    enemy_query: Query<(Entity, &Damage), With<TagEnemy>>,
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
         for (player_entity, _player) in &mut player_query {
-            for (enemy_entity, _enemy) in &enemy_query {
+            for (enemy_entity, damage) in &enemy_query {
                 if let Some(_contact_pair) =
                     rapier_context.contact_pair(player_entity, enemy_entity)
                 {
-                    commands.entity(player_entity).insert(Hurting(1.0));
+                    commands.entity(player_entity).insert(Hurting(damage.0));
                 }
             }
         }
     }
 }
 
-fn kill_player(_commands: Commands, player_query: Query<(Entity, &Health), With<Player>>) {
-    for (_entity, health) in &player_query {
+fn kill_player(
+    mut commands: Commands,
+    mut player_query: Query<(Entity, &Health, &mut Velocity), With<Player>>,
+) {
+    for (entity, health, mut velocity) in &mut player_query {
         if health.current <= 0.0 {
             // commands.entity(entity).despawn()
+            commands.entity(entity).insert(Dead);
+            commands.entity(entity).remove::<Collider>();
+
+            velocity.linvel = Vec2::ZERO;
+
             println!("Player is dead");
         }
     }

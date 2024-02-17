@@ -11,6 +11,7 @@ pub struct Enemy {
 
 pub struct EnemyState {
     pub moving: bool,
+    pub attack: bool,
     pub facing: Vec3,
 }
 
@@ -18,6 +19,9 @@ pub struct EnemyStats {
     pub size: f32,
     pub move_speed: f32,
 }
+
+#[derive(Component)]
+pub struct TagEnemy;
 
 impl Default for Enemy {
     fn default() -> Self {
@@ -33,6 +37,7 @@ impl Default for Enemy {
             state: EnemyState {
                 moving: false,
                 facing: Vec3::new(1.0, 0.0, 0.0),
+                attack: false,
             },
             stats: EnemyStats {
                 size: 5.0,

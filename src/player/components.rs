@@ -39,14 +39,8 @@ pub struct BulletDespawnTimer(pub Timer);
 impl Default for Player {
     fn default() -> Self {
         Self {
-            idle: AnimationIndices {
-                first: 241,
-                last: 241,
-            },
-            walk: AnimationIndices {
-                first: 242,
-                last: 243,
-            },
+            idle: AnimationIndices { first: 6, last: 7 },
+            walk: AnimationIndices { first: 0, last: 3 },
             state: PlayerState {
                 moving: false,
                 facing: Vec3::new(1.0, 0.0, 0.0),
