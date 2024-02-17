@@ -21,8 +21,8 @@ pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Game), setup_enemy_timer)
-            .add_systems(OnExit(GameState::Game), cleanup)
+        app.add_systems(OnEnter(GameState::Playing), setup_enemy_timer)
+            .add_systems(OnExit(GameState::Playing), cleanup)
             .add_systems(
                 Update,
                 ((
@@ -35,7 +35,7 @@ impl Plugin for EnemyPlugin {
                     cleanup_dead,
                 )
                     .chain()
-                    .run_if(in_state(GameState::Game)),),
+                    .run_if(in_state(GameState::Playing)),),
             );
     }
 }

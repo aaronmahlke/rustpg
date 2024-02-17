@@ -20,6 +20,10 @@ pub enum SoundEffectType {
     XPCollect,
 }
 
+pub enum MusicType {
+    Game,
+}
+
 #[derive(AssetCollection, Resource, Default)]
 pub struct GameAudioAssets {
     #[asset(path = "audio/player_shoot.wav")]
@@ -36,10 +40,12 @@ pub struct GameAudioAssets {
     enemy_death: Handle<AudioSource>,
     #[asset(path = "audio/xp_collect.wav")]
     xp_collect: Handle<AudioSource>,
+    #[asset(path = "audio/music_game.wav")]
+    music_game: Handle<AudioSource>,
 }
 
 impl GameAudioAssets {
-    pub fn get(&self, sound: &SoundEffectType) -> Handle<AudioSource> {
+    pub fn get_sound_effect(&self, sound: &SoundEffectType) -> Handle<AudioSource> {
         match sound {
             SoundEffectType::PlayerShoot => self.player_shoot.clone(),
             SoundEffectType::PlayerHurt => self.player_hurt.clone(),
@@ -48,6 +54,12 @@ impl GameAudioAssets {
             SoundEffectType::EnemyHurt => self.enemy_hurt.clone(),
             SoundEffectType::EnemyDeath => self.enemy_death.clone(),
             SoundEffectType::XPCollect => self.xp_collect.clone(),
+        }
+    }
+
+    pub fn get_music(&self, music: &MusicType) -> Handle<AudioSource> {
+        match music {
+            MusicType::Game => self.music_game.clone(),
         }
     }
 }

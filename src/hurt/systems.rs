@@ -20,7 +20,7 @@ impl Plugin for HurtPlugin {
                 stop_hurt,
             )
                 .chain()
-                .run_if(in_state(GameState::Game)),
+                .run_if(in_state(GameState::Playing)),
         );
     }
 }

@@ -19,7 +19,7 @@ impl Plugin for XPPlugin {
                 spawn_xp,
                 (collect_xp, move_xp_to_player)
                     .chain()
-                    .run_if(in_state(GameState::Game)),
+                    .run_if(in_state(GameState::Playing)),
             ),
         )
         .add_event::<XPDropEvent>();

@@ -12,12 +12,19 @@ impl Plugin for AjmAudioPlugin {
         app.add_event::<PlaySoundEffectEvent>();
         app.add_loading_state(
             LoadingState::new(GameState::Loading)
-                .continue_to_state(GameState::Game)
+                .continue_to_state(GameState::Menu)
                 .load_collection::<GameAudioAssets>(),
         );
+        app.add_systems(OnEnter(GameState::Playing), play_music);
         app.init_resource::<GameAudioAssets>();
         app.add_systems(Update, play_sound_effect_system);
     }
+}
+
+fn play_music(audio: Res<Audio>, audio_assets: Res<GameAudioAssets>) {
+    audio
+        .play(audio_assets.get_music(&MusicType::Game))
+        .looped();
 }
 
 fn play_sound_effect_system(
@@ -26,6 +33,6 @@ fn play_sound_effect_system(
     audio_assets: Res<GameAudioAssets>,
 ) {
     for event in play_sound_event_reader.read() {
-        audio.play(audio_assets.get(&event.sound));
+        audio.play(audio_assets.get_sound_effect(&event.sound));
     }
 }

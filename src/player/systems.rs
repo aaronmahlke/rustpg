@@ -19,7 +19,7 @@ pub struct PlayerPlugin;
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(AsepritesheetPlugin::new(&["sprite.json"]))
-            .add_systems(OnEnter(GameState::Game), spawn_player)
+            .add_systems(OnEnter(GameState::Playing), spawn_player)
             .add_systems(
                 Update,
                 (
@@ -31,7 +31,7 @@ impl Plugin for PlayerPlugin {
                     hurt_player,
                     kill_player,
                 )
-                    .run_if(in_state(GameState::Game)),
+                    .run_if(in_state(GameState::Playing)),
             );
     }
 }

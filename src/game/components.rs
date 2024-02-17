@@ -6,7 +6,7 @@ pub enum GameState {
     Loading,
     Splash,
     Menu,
-    Game,
+    Playing,
     Upgrade,
 }
 

@@ -7,7 +7,7 @@ use crate::enemy::systems::EnemyPlugin;
 use crate::hurt::systems::HurtPlugin;
 use crate::particle::systems::ParticlePlugin;
 use crate::player::systems::PlayerPlugin;
-use crate::ui::systems::GameUIPlugin;
+use crate::ui::UIPlugin;
 use crate::xp::systems::XPPlugin;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
@@ -24,7 +24,7 @@ impl Plugin for GamePlugin {
             CameraPlugin,
             XPPlugin,
             ParticlePlugin,
-            GameUIPlugin,
+            UIPlugin,
         ))
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
     }

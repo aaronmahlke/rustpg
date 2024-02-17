@@ -1,37 +1,38 @@
 use bevy::prelude::*;
 
-use crate::{game::components::GameState, player::components::Player};
-
-pub struct GameUIPlugin;
-
-impl Plugin for GameUIPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(OnEnter(GameState::Game), setup_ui)
-            .add_systems(Update, update_ui.run_if(in_state(GameState::Game)));
-    }
-}
+use super::components::*;
+use crate::player::components::Player;
 
 #[derive(Component)]
 pub struct UIXPBar;
 
-fn setup_ui(mut commands: Commands) {
+pub fn despawn_game_ui(mut commands: Commands, ui_query: Query<Entity, With<TagGameUI>>) {
+    for entity in &ui_query {
+        commands.entity(entity).despawn_recursive();
+    }
+}
+
+pub fn setup_game_ui(mut commands: Commands) {
     commands
-        .spawn(NodeBundle {
-            style: Style {
-                width: Val::Percent(100.0),
-                height: Val::Px(50.0),
-                position_type: PositionType::Absolute,
-                top: Val::Px(0.0),
-                padding: UiRect {
-                    left: Val::Px(20.0),
-                    right: Val::Px(20.0),
-                    top: Val::Px(20.0),
-                    bottom: Val::Px(20.0),
+        .spawn((
+            NodeBundle {
+                style: Style {
+                    width: Val::Percent(100.0),
+                    height: Val::Px(50.0),
+                    position_type: PositionType::Absolute,
+                    top: Val::Px(0.0),
+                    padding: UiRect {
+                        left: Val::Px(20.0),
+                        right: Val::Px(20.0),
+                        top: Val::Px(20.0),
+                        bottom: Val::Px(20.0),
+                    },
+                    ..default()
                 },
                 ..default()
             },
-            ..default()
-        })
+            TagGameUI,
+        ))
         .with_children(|parent| {
             parent
                 .spawn(NodeBundle {
@@ -61,7 +62,7 @@ fn setup_ui(mut commands: Commands) {
         });
 }
 
-fn update_ui(
+pub fn update_ui(
     mut xp_query: Query<(&UIXPBar, &mut Style)>,
     player_query: Query<&Player>,
     time: Res<Time>,

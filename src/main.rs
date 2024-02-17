@@ -9,6 +9,7 @@ pub mod health;
 pub mod hurt;
 pub mod particle;
 pub mod player;
+pub mod powerups;
 pub mod ui;
 pub mod window;
 pub mod xp;
