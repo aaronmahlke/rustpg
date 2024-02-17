@@ -54,55 +54,71 @@ fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .spawn((
-            Player::default(),
-            AnimatedSpriteBundle {
-                spritesheet: spritesheet_handle,
-                sprite_bundle: SpriteSheetBundle {
-                    transform: Transform {
-                        translation: Vec3::new(0.0, 0.0, 0.0),
-                        scale: Vec3::splat(player.stats.size),
-                        ..Default::default()
-                    },
-                    ..default()
-                },
-                ..default()
+            SpatialBundle::from(Transform::from_xyz(0.0, 0.0, 0.0)),
+            Health {
+                max: 3.0,
+                current: 3.0,
             },
-            AnimEventSender,
             ShootTimer(Timer::from_seconds(
                 player.stats.shot_speed,
                 TimerMode::Once,
             )),
             RigidBody::Dynamic,
             Velocity::zero(),
-            Collider::ball(player.stats.size - 2.0),
             ActiveEvents::COLLISION_EVENTS,
             LockedAxes::ROTATION_LOCKED,
             Damageable,
             Target,
-            Health {
-                max: 3.0,
-                current: 3.0,
-            },
+            Player::default(),
         ))
-        .with_children(|children| {
-            children.spawn((
+        .with_children(|parent| {
+            parent.spawn((
+                Collider::ball(player.stats.size * 3.0),
+                TransformBundle::from(Transform::from_xyz(0.0, -5.0, 0.0)),
+                TagPlayer,
+            ));
+
+            parent.spawn((
                 Collider::ball(100.0),
                 Sensor,
-                XPCollector,
                 ActiveEvents::COLLISION_EVENTS,
                 ActiveHooks::FILTER_INTERSECTION_PAIR,
+                XPCollector,
+                TagPlayer,
+            ));
+
+            parent.spawn((
+                AnimatedSpriteBundle {
+                    spritesheet: spritesheet_handle,
+                    sprite_bundle: SpriteSheetBundle {
+                        transform: Transform {
+                            translation: Vec3::new(0.0, 0.0, 0.0),
+                            scale: Vec3::splat(player.stats.size),
+                            ..Default::default()
+                        },
+                        ..default()
+                    },
+                    ..default()
+                },
+                AnimEventSender,
+                TagPlayer,
             ));
         });
 }
 
 fn flip_player(
-    mut query: Query<(&Player, &mut Transform, &mut TextureAtlasSprite), Without<Dead>>,
+    mut query: Query<(&Player, &Children), Without<Dead>>,
+    mut sprite_query: Query<&mut Transform, With<TextureAtlasSprite>>,
 ) {
-    for (player, mut transform, _sprite) in &mut query {
-        if player.state.facing.x < 0.0 {
-            transform.scale.x = -player.stats.size;
-        } else {
-            transform.scale.x = player.stats.size;
+    for (player, children) in &mut query {
+        for child in children {
+            if let Ok(mut transform) = sprite_query.get_mut(*child) {
+                if player.state.facing.x < 0.0 {
+                    transform.scale.x = -player.stats.size;
+                } else {
+                    transform.scale.x = player.stats.size;
+                }
+            }
         }
     }
 }
@@ -143,16 +159,24 @@ fn move_player(
     }
 }
 
-fn animate_player(mut query: Query<(&mut SpriteAnimator, &Health, &Player)>) {
-    for (mut sprite_animator, health, player) in &mut query {
-        sprite_animator.time_scale = 1.0;
-        // animate player
-        if health.current <= 0.0 {
-            sprite_animator.set_anim_index(4);
-        } else if player.state.moving {
-            sprite_animator.set_anim_index(0);
-        } else {
-            sprite_animator.set_anim_index(2);
+fn animate_player(
+    mut q_animator: Query<&mut SpriteAnimator, With<TagPlayer>>,
+    q_player: Query<(&Health, &Player, &Children)>,
+) {
+    for (health, player, children) in &q_player {
+        for child in children {
+            if let Ok(mut sprite_animator) = q_animator.get_mut(*child) {
+                if health.current <= 0.0 {
+                    sprite_animator.time_scale = 1.0;
+                    sprite_animator.set_anim_index(4);
+                } else if player.state.moving {
+                    sprite_animator.time_scale = 1.0;
+                    sprite_animator.set_anim_index(0);
+                } else {
+                    sprite_animator.time_scale = 1.0;
+                    sprite_animator.set_anim_index(2);
+                }
+            }
         }
     }
 }
@@ -255,17 +279,20 @@ fn update_bullets(
 fn hurt_player(
     mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
-    mut player_query: Query<(Entity, &mut Player), With<Player>>,
-    enemy_query: Query<(Entity, &Damage), With<TagEnemy>>,
+    mut player_collider_query: Query<Entity, With<TagPlayer>>,
+    parent_query: Query<&Parent>,
+    damage_query: Query<(Entity, &Damage), With<TagEnemy>>,
     rapier_context: Res<RapierContext>,
 ) {
     for _ in collision_events.read() {
-        for (player_entity, _player) in &mut player_query {
-            for (enemy_entity, damage) in &enemy_query {
+        for player_collider_entity in &mut player_collider_query {
+            for (damage_entity, damage_source) in &damage_query {
                 if let Some(_contact_pair) =
-                    rapier_context.contact_pair(player_entity, enemy_entity)
+                    rapier_context.contact_pair(damage_entity, player_collider_entity)
                 {
-                    commands.entity(player_entity).insert(Hurting(damage.0));
+                    for parent in parent_query.iter_ancestors(player_collider_entity) {
+                        commands.entity(parent).insert(Hurting(damage_source.0));
+                    }
                 }
             }
         }

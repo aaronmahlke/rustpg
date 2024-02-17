@@ -20,6 +20,6 @@ use gamestate::systems::GameStatePlugin;
 fn main() {
     App::new()
         .add_plugins(GameStatePlugin)
-        // .add_plugins(RapierDebugRenderPlugin::default())
+        .add_plugins(RapierDebugRenderPlugin::default())
         .run();
 }

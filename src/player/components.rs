@@ -11,6 +11,9 @@ pub struct Bullet {
 }
 
 #[derive(Component)]
+pub struct TagPlayer;
+
+#[derive(Component)]
 pub struct Player {
     pub idle: AnimationIndices,
     pub walk: AnimationIndices,

@@ -161,7 +161,6 @@ fn animate_enemy(
                     sprite_animator.set_anim_index(4);
                 } else if enemy.state.attack {
                     //attack
-                    println!("attack");
                     sprite_animator.set_anim_index(2);
                 } else if enemy.state.moving {
                     // walk

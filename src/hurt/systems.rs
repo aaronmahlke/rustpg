@@ -25,14 +25,25 @@ impl Plugin for HurtPlugin {
     }
 }
 
-fn flash_sprite_red(mut query: Query<(&mut TextureAtlasSprite, Option<&Hurting>)>) {
-    for (mut sprite, hurting) in query.iter_mut() {
+fn flash_sprite_red(
+    mut query: Query<(Option<&Hurting>, &Children)>,
+    mut sprite_query: Query<&mut TextureAtlasSprite>,
+) {
+    for (hurting, children) in query.iter_mut() {
         match hurting {
             Some(_) => {
-                sprite.color = Color::RED;
+                for child in children {
+                    if let Ok(mut sprite) = sprite_query.get_mut(*child) {
+                        sprite.color = Color::RED;
+                    }
+                }
             }
             None => {
-                sprite.color = Color::WHITE;
+                for child in children.iter() {
+                    if let Ok(mut sprite) = sprite_query.get_mut(*child) {
+                        sprite.color = Color::WHITE;
+                    }
+                }
             }
         }
     }
