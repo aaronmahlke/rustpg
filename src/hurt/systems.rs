@@ -1,5 +1,5 @@
 use crate::damagable::components::Damageable;
-use crate::gamestate::components::GameState;
+use crate::game::components::GameState;
 use crate::health::components::Health;
 
 use super::components::*;

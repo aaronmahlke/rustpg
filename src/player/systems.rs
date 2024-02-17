@@ -7,7 +7,7 @@ use crate::{
     camera::components::Target,
     damagable::components::*,
     enemy::components::*,
-    gamestate::components::GameState,
+    game::components::GameState,
     health::components::{Dead, Health},
     hurt::components::*,
     xp::components::XPCollector,

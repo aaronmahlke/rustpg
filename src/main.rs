@@ -4,7 +4,6 @@ pub mod damagable;
 pub mod debug;
 pub mod enemy;
 pub mod game;
-pub mod gamestate;
 pub mod health;
 pub mod hurt;
 pub mod particle;
@@ -15,11 +14,11 @@ pub mod xp;
 
 use bevy::prelude::*;
 use bevy_rapier2d::render::RapierDebugRenderPlugin;
-use gamestate::systems::GameStatePlugin;
+use game::systems::GameStatePlugin;
 
 fn main() {
     App::new()
         .add_plugins(GameStatePlugin)
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .run();
 }

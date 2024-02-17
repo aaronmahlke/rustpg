@@ -1,5 +1,5 @@
 use crate::{
-    base::components::Collectable, gamestate::components::GameState, player::components::Player,
+    base::components::Collectable, game::components::GameState, player::components::Player,
 };
 
 use super::components::*;

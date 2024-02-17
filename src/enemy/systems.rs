@@ -1,3 +1,4 @@
+use bevy::gizmos;
 use bevy::sprite::Anchor;
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_asepritesheet::prelude::*;
@@ -8,7 +9,7 @@ use super::resources::*;
 
 use crate::base::components::WINDOW_PADDING;
 use crate::damagable::components::Damageable;
-use crate::gamestate::components::GameState;
+use crate::game::components::GameState;
 use crate::health::components::{Dead, Health};
 use crate::hurt::components::*;
 use crate::particle::components::Particle;
@@ -60,6 +61,7 @@ fn spawn_enemies(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
+    mut gizmos: Gizmos,
 ) {
     let spritesheet_handle = load_spritesheet_then(
         &mut commands,
@@ -80,24 +82,36 @@ fn spawn_enemies(
     for mut timer in &mut query {
         if timer.0.tick(time.delta()).just_finished() {
             let horizontal = rand::random::<bool>();
-            let x_flip = rand::random::<f32>().signum();
-            let y_flip = rand::random::<f32>().signum();
+
+            let ver_flip = rand::random::<bool>();
+            let hor_flip = rand::random::<bool>();
 
             let random_coordinates = if horizontal {
-                let random_x = rand::random::<f32>() * window.width() - window.width() / 2.0;
-                let random_y = (window.height() + WINDOW_PADDING) * y_flip;
+                let random_x = rand::random::<f32>() * window.width();
+                let random_y = if ver_flip {
+                    window.height() + WINDOW_PADDING
+                } else {
+                    -WINDOW_PADDING
+                };
                 Vec2::new(random_x, random_y)
             } else {
-                let random_x = (window.width() + WINDOW_PADDING) * x_flip;
-                let random_y = rand::random::<f32>() * window.height() - window.height() / 2.0;
+                let random_x = if hor_flip {
+                    window.width() + WINDOW_PADDING
+                } else {
+                    -WINDOW_PADDING
+                };
+                let random_y = rand::random::<f32>() * window.height();
                 Vec2::new(random_x, random_y)
             };
-
+            let no_so_random = Vec2::new(window.width(), window.height());
             let Some(world_coordinates) =
                 camera.viewport_to_world_2d(camera_transform, random_coordinates)
             else {
                 return;
             };
+            println!("coordinates: {:?}", no_so_random);
+            println!("random coordinates: {:?}", random_coordinates);
+            println!("world coordinates: {:?}", world_coordinates);
 
             commands
                 .spawn((

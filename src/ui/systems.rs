@@ -1,6 +1,6 @@
 use bevy::prelude::*;
 
-use crate::{gamestate::components::GameState, player::components::Player};
+use crate::{game::components::GameState, player::components::Player};
 
 pub struct GameUIPlugin;
 
