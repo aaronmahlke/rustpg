@@ -318,6 +318,8 @@ fn kill_player(
             // commands.entity(entity).despawn()
             commands.entity(entity).insert(Dead);
             commands.entity(entity).remove::<Collider>();
+            commands.entity(entity).remove::<Hurting>();
+            commands.entity(entity).remove::<Damageable>();
 
             velocity.linvel = Vec2::ZERO;
 

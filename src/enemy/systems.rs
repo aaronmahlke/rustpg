@@ -108,9 +108,6 @@ fn spawn_enemies(
             else {
                 return;
             };
-            println!("coordinates: {:?}", no_so_random);
-            println!("random coordinates: {:?}", random_coordinates);
-            println!("world coordinates: {:?}", world_coordinates);
 
             commands
                 .spawn((

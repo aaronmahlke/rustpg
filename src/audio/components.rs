@@ -10,6 +10,21 @@ pub struct PlaySoundEffectEvent {
     pub sound: SoundEffectType,
 }
 
+#[derive(Event)]
+pub struct PlayMusicEvent {
+    pub sound: MusicType,
+    pub looping: bool,
+}
+
+impl Default for PlayMusicEvent {
+    fn default() -> Self {
+        Self {
+            sound: MusicType::Menu,
+            looping: false,
+        }
+    }
+}
+
 pub enum SoundEffectType {
     PlayerShoot,
     PlayerHurt,
@@ -22,6 +37,7 @@ pub enum SoundEffectType {
 
 pub enum MusicType {
     Game,
+    Menu,
 }
 
 #[derive(AssetCollection, Resource, Default)]
@@ -42,6 +58,8 @@ pub struct GameAudioAssets {
     xp_collect: Handle<AudioSource>,
     #[asset(path = "audio/music_game.wav")]
     music_game: Handle<AudioSource>,
+    #[asset(path = "audio/music_menu.wav")]
+    music_menu: Handle<AudioSource>,
 }
 
 impl GameAudioAssets {
@@ -60,6 +78,7 @@ impl GameAudioAssets {
     pub fn get_music(&self, music: &MusicType) -> Handle<AudioSource> {
         match music {
             MusicType::Game => self.music_game.clone(),
+            MusicType::Menu => self.music_menu.clone(),
         }
     }
 }

@@ -83,7 +83,6 @@ pub fn update_menu(
 }
 
 pub fn cleanup_menu(mut commands: Commands, menu_query: Query<Entity, With<TagMainMenu>>) {
-    println!("Cleaning up menu");
     for entity in &menu_query {
         commands.entity(entity).despawn_recursive();
     }
