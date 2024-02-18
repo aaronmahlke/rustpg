@@ -1,6 +1,9 @@
 use bevy::prelude::*;
 
-use crate::game::components::GameState;
+use crate::{
+    audio::components::{PlaySoundEffectEvent, SoundEffectType},
+    game::components::GameState,
+};
 
 use super::components::{ButtonStyle, TagMainMenu};
 
@@ -57,6 +60,7 @@ pub fn update_menu(
         (Changed<Interaction>, With<Button>),
     >,
     mut text_query: Query<&mut Text>,
+    mut sound_event: EventWriter<PlaySoundEffectEvent>,
 ) {
     for (interaction, mut color, children) in &mut interaction_query {
         for child in children {
@@ -66,11 +70,17 @@ pub fn update_menu(
                     Interaction::Pressed => {
                         *color = ButtonStyle::default().background.active;
                         text.sections[0].style.color = ButtonStyle::default().foreground.active;
+                        sound_event.send(PlaySoundEffectEvent {
+                            sound: SoundEffectType::UIEnter,
+                        });
                         next_state.set(GameState::Playing);
                     }
                     Interaction::Hovered => {
                         *color = ButtonStyle::default().background.hover;
                         text.sections[0].style.color = ButtonStyle::default().foreground.hover;
+                        sound_event.send(PlaySoundEffectEvent {
+                            sound: SoundEffectType::UIHover,
+                        });
                     }
                     Interaction::None => {
                         *color = ButtonStyle::default().background.default;

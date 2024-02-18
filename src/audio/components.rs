@@ -33,8 +33,11 @@ pub enum SoundEffectType {
     EnemyHurt,
     EnemyDeath,
     XPCollect,
+    UIHover,
+    UIEnter,
 }
 
+#[derive(Debug)]
 pub enum MusicType {
     Game,
     Menu,
@@ -60,6 +63,10 @@ pub struct GameAudioAssets {
     music_game: Handle<AudioSource>,
     #[asset(path = "audio/music_menu.wav")]
     music_menu: Handle<AudioSource>,
+    #[asset(path = "audio/ui_hover.wav")]
+    ui_hover: Handle<AudioSource>,
+    #[asset(path = "audio/ui_enter.wav")]
+    ui_press: Handle<AudioSource>,
 }
 
 impl GameAudioAssets {
@@ -72,6 +79,8 @@ impl GameAudioAssets {
             SoundEffectType::EnemyHurt => self.enemy_hurt.clone(),
             SoundEffectType::EnemyDeath => self.enemy_death.clone(),
             SoundEffectType::XPCollect => self.xp_collect.clone(),
+            SoundEffectType::UIHover => self.ui_hover.clone(),
+            SoundEffectType::UIEnter => self.ui_press.clone(),
         }
     }
 

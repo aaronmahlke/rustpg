@@ -26,6 +26,7 @@ pub struct PlayerStats {
     pub shot_speed: f32,
     pub move_speed: f32,
     pub xp: u32,
+    pub level: u32,
 }
 
 pub struct PlayerState {
@@ -53,6 +54,7 @@ impl Default for Player {
                 shot_speed: 0.4,
                 move_speed: 300.0,
                 xp: 0,
+                level: 0,
             },
         }
     }

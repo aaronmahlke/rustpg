@@ -1,7 +1,7 @@
 use crate::{
     audio::components::{PlaySoundEffectEvent, SoundEffectType},
     base::components::Collectable,
-    game::components::GameState,
+    game::components::{GameRules, GameState},
     player::components::Player,
 };
 
@@ -72,12 +72,13 @@ fn collect_xp(
 fn move_xp_to_player(
     mut commands: Commands,
     mut xp_query: Query<(Entity, &XP, &mut Transform), With<CollectionAnimation>>,
-    mut player_query: Query<(&mut Player, &Transform), Without<XP>>,
-    time: Res<Time>,
+    player_query: Query<(&Player, &Transform), Without<XP>>,
     mut sound_event: EventWriter<PlaySoundEffectEvent>,
+    mut game: ResMut<GameRules>,
+    time: Res<Time>,
 ) {
     for (xp_entity, xp, mut xp_transform) in &mut xp_query {
-        for (mut player, player_transform) in &mut player_query {
+        for (player, player_transform) in &player_query {
             let acceleration = 5.0;
             let smoothness = 0.9;
             let direction = xp_transform.translation - player_transform.translation;
@@ -85,9 +86,8 @@ fn move_xp_to_player(
             let distance = direction.length();
             // Apply smoothing
             let velocity = acceleration * time.delta_seconds();
-            let velocity = velocity * (distance / 50.0);
+            let velocity = velocity * (distance / 35.0);
 
-            // get faster as it gets closer to the player
             if distance > player.stats.size + 40.0 {
                 xp_transform.translation -= velocity / smoothness;
                 // let xp shrink as it gets closer to the player
@@ -98,7 +98,7 @@ fn move_xp_to_player(
                     sound: SoundEffectType::XPCollect,
                 });
                 commands.entity(xp_entity).despawn();
-                player.stats.xp += xp.0;
+                game.xp += xp.0;
             }
         }
     }

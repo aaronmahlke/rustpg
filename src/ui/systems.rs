@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 use super::components::*;
-use crate::player::components::Player;
+use crate::game::components::GameRules;
 
 #[derive(Component)]
 pub struct UIXPBar;
@@ -64,21 +64,19 @@ pub fn setup_game_ui(mut commands: Commands) {
 
 pub fn update_ui(
     mut xp_query: Query<(&UIXPBar, &mut Style)>,
-    player_query: Query<&Player>,
+    game: Res<GameRules>,
     time: Res<Time>,
 ) {
     for (_, mut style) in &mut xp_query {
-        for player in &player_query {
-            // tween the width of the xp bar so that it animates over time
+        // tween the width of the xp bar so that it animates over time
 
-            let xp_bar_width = style.width;
-            let xp_bar_width = match xp_bar_width {
-                Val::Percent(percent) => percent,
-                _ => 0.0,
-            };
-            let target_width = player.stats.xp as f32 / 10.0 * 100.0;
-            style.width =
-                Val::Percent(xp_bar_width + (target_width - xp_bar_width) * time.delta_seconds());
-        }
+        let xp_bar_width = style.width;
+        let xp_bar_width = match xp_bar_width {
+            Val::Percent(percent) => percent,
+            _ => 0.0,
+        };
+        let target_width = game.xp as f32 / game.get_level_xp() as f32 * 100.0;
+        style.width =
+            Val::Percent(xp_bar_width + (target_width - xp_bar_width) * time.delta_seconds());
     }
 }

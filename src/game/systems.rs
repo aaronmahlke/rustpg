@@ -21,26 +21,23 @@ impl Plugin for GameStatePlugin {
             .add_plugins(GamePlugin)
             .add_plugins((FrameTimeDiagnosticsPlugin, FPSPlugin));
 
-        // Game Music
-        app.add_systems(OnEnter(GameState::Playing), setup_state_playing);
-
         // Menu Music
         app.add_systems(OnEnter(GameState::Menu), setup_state_menu);
+        // Game Music
+        app.add_systems(OnEnter(GameState::Playing), setup_state_playing);
     }
 }
 
-fn setup_state_playing(mut sound_event: EventWriter<PlayMusicEvent>) {
-    println!("Playing game music");
+fn setup_state_menu(mut sound_event: EventWriter<PlayMusicEvent>) {
     sound_event.send(PlayMusicEvent {
         sound: MusicType::Menu,
         looping: true,
     });
 }
 
-fn setup_state_menu(mut sound_event: EventWriter<PlayMusicEvent>) {
-    println!("Playing menu music");
+fn setup_state_playing(mut sound_event: EventWriter<PlayMusicEvent>) {
     sound_event.send(PlayMusicEvent {
-        sound: MusicType::Menu,
+        sound: MusicType::Game,
         looping: true,
     });
 }

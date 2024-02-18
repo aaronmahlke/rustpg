@@ -1,4 +1,5 @@
 pub mod components;
+pub mod level;
 pub mod systems;
 
 use crate::base::resources::SpriteSheetPlugin;
@@ -12,20 +13,24 @@ use crate::xp::systems::XPPlugin;
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
+use self::level::LevelPlugin;
+
 pub struct GamePlugin;
 
 impl Plugin for GamePlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins((
-            SpriteSheetPlugin,
-            PlayerPlugin,
-            EnemyPlugin,
-            HurtPlugin,
-            CameraPlugin,
-            XPPlugin,
-            ParticlePlugin,
-            UIPlugin,
-        ))
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
+        app.init_resource::<components::GameRules>()
+            .add_plugins((
+                SpriteSheetPlugin,
+                PlayerPlugin,
+                EnemyPlugin,
+                HurtPlugin,
+                CameraPlugin,
+                XPPlugin,
+                ParticlePlugin,
+                UIPlugin,
+                LevelPlugin,
+            ))
+            .add_plugins(RapierPhysicsPlugin::<NoUserData>::default());
     }
 }
