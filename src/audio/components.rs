@@ -14,6 +14,7 @@ pub struct PlaySoundEffectEvent {
 pub struct PlayMusicEvent {
     pub sound: MusicType,
     pub looping: bool,
+    pub fade_in: u64,
 }
 
 #[derive(Event)]
@@ -24,10 +25,12 @@ impl Default for PlayMusicEvent {
         Self {
             sound: MusicType::Menu,
             looping: false,
+            fade_in: 0,
         }
     }
 }
 
+#[derive(Debug)]
 pub enum SoundEffectType {
     PlayerShoot,
     PlayerHurt,
@@ -38,12 +41,14 @@ pub enum SoundEffectType {
     XPCollect,
     UIHover,
     UIEnter,
+    EnterLevelUp,
 }
 
 #[derive(Debug)]
 pub enum MusicType {
     Game,
     Menu,
+    Upgrade,
 }
 
 #[derive(AssetCollection, Resource, Default)]
@@ -62,14 +67,18 @@ pub struct GameAudioAssets {
     enemy_death: Handle<AudioSource>,
     #[asset(path = "audio/xp_collect.wav")]
     xp_collect: Handle<AudioSource>,
-    #[asset(path = "audio/music_game.wav")]
-    music_game: Handle<AudioSource>,
-    #[asset(path = "audio/music_menu.wav")]
-    music_menu: Handle<AudioSource>,
     #[asset(path = "audio/ui_hover.wav")]
     ui_hover: Handle<AudioSource>,
     #[asset(path = "audio/ui_enter.wav")]
     ui_press: Handle<AudioSource>,
+    #[asset(path = "audio/music_game.wav")]
+    music_game: Handle<AudioSource>,
+    #[asset(path = "audio/music_menu.wav")]
+    music_menu: Handle<AudioSource>,
+    #[asset(path = "audio/music_upgrade.wav")]
+    music_upgrade: Handle<AudioSource>,
+    #[asset(path = "audio/enter_level_up.wav")]
+    enter_level_up: Handle<AudioSource>,
 }
 
 impl GameAudioAssets {
@@ -84,6 +93,7 @@ impl GameAudioAssets {
             SoundEffectType::XPCollect => self.xp_collect.clone(),
             SoundEffectType::UIHover => self.ui_hover.clone(),
             SoundEffectType::UIEnter => self.ui_press.clone(),
+            SoundEffectType::EnterLevelUp => self.enter_level_up.clone(),
         }
     }
 
@@ -91,6 +101,7 @@ impl GameAudioAssets {
         match music {
             MusicType::Game => self.music_game.clone(),
             MusicType::Menu => self.music_menu.clone(),
+            MusicType::Upgrade => self.music_upgrade.clone(),
         }
     }
 }

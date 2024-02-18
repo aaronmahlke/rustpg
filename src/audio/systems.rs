@@ -32,11 +32,12 @@ fn play_music(
     audio_assets: Res<GameAudioAssets>,
 ) {
     for event in play_sound_event_reader.read() {
+        println!("Playing music: {:?}", event.sound);
         if event.looping {
             audio
                 .play(audio_assets.get_music(&event.sound))
                 .fade_in(AudioTween::new(
-                    Duration::from_secs(2),
+                    Duration::from_millis(event.fade_in),
                     AudioEasing::OutPowi(2),
                 ))
                 .looped();
@@ -53,6 +54,7 @@ fn play_sound_effect_system(
     audio_assets: Res<GameAudioAssets>,
 ) {
     for event in play_sound_event_reader.read() {
+        println!("Playing sound: {:?}", event.sound);
         audio.play(audio_assets.get_sound_effect(&event.sound));
     }
 }

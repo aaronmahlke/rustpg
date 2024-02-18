@@ -1,6 +1,7 @@
 pub mod components;
 pub mod main_menu;
 pub mod systems;
+pub mod upgrade_menu;
 
 use crate::game::components::GameState;
 use bevy::prelude::*;
@@ -24,5 +25,13 @@ impl Plugin for UIPlugin {
                 main_menu::update_menu.run_if(in_state(GameState::Menu)),
             )
             .add_systems(OnExit(GameState::Menu), main_menu::cleanup_menu);
+
+        // Upgrade Menu
+        app.add_systems(OnEnter(GameState::Upgrade), upgrade_menu::setup_menu)
+            .add_systems(
+                Update,
+                upgrade_menu::update_menu.run_if(in_state(GameState::Upgrade)),
+            )
+            .add_systems(OnExit(GameState::Upgrade), upgrade_menu::cleanup_menu);
     }
 }

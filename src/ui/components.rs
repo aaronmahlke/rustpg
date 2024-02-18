@@ -6,6 +6,9 @@ pub struct TagGameUI;
 #[derive(Component)]
 pub struct TagMainMenu;
 
+#[derive(Component)]
+pub struct TagUpgradeMenu;
+
 pub struct ButtonStyle {
     pub background: ButtonBackground,
     pub foreground: ButtonForeground,

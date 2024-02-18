@@ -54,7 +54,17 @@ fn pause_move(mut query: Query<(&mut Velocity, &mut Player)>) {
     }
 }
 
-fn spawn_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn spawn_player(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    player_query: Query<Option<&Player>>,
+) {
+    for player in &player_query {
+        if player.is_some() {
+            return;
+        }
+    }
+
     let spritesheet_handle = load_spritesheet_then(
         &mut commands,
         &asset_server,

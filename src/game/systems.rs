@@ -1,6 +1,8 @@
 use crate::{
     audio::{
-        components::{MusicType, PlayMusicEvent, StopSoundEvent},
+        components::{
+            MusicType, PlayMusicEvent, PlaySoundEffectEvent, SoundEffectType, StopSoundEvent,
+        },
         systems::AjmAudioPlugin,
     },
     debug::fps::FPSPlugin,
@@ -9,7 +11,7 @@ use crate::{
 
 use super::{components::*, GamePlugin};
 use bevy::{diagnostic::FrameTimeDiagnosticsPlugin, prelude::*};
-use bevy_kira_audio::AudioPlugin;
+use bevy_kira_audio::prelude::*;
 
 pub struct GameStatePlugin;
 
@@ -36,6 +38,7 @@ fn setup_state_menu(mut sound_event: EventWriter<PlayMusicEvent>) {
     sound_event.send(PlayMusicEvent {
         sound: MusicType::Menu,
         looping: true,
+        fade_in: 1000,
     });
 }
 
@@ -43,16 +46,22 @@ fn setup_state_playing(mut sound_event: EventWriter<PlayMusicEvent>) {
     sound_event.send(PlayMusicEvent {
         sound: MusicType::Game,
         looping: true,
+        ..default()
     });
 }
 
 fn setup_state_upgrade(
-    mut sound_event: EventWriter<PlayMusicEvent>,
-    mut stop_sound_event: EventWriter<StopSoundEvent>,
+    mut music_event: EventWriter<PlayMusicEvent>,
+    mut sound_event: EventWriter<PlaySoundEffectEvent>,
+    audio: Res<Audio>,
 ) {
-    stop_sound_event.send(StopSoundEvent);
-    sound_event.send(PlayMusicEvent {
-        sound: MusicType::Menu,
+    audio.stop();
+    sound_event.send(PlaySoundEffectEvent {
+        sound: SoundEffectType::EnterLevelUp,
+    });
+    music_event.send(PlayMusicEvent {
+        sound: MusicType::Upgrade,
         looping: true,
+        fade_in: 1000,
     });
 }
