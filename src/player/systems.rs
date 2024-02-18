@@ -18,21 +18,39 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_plugins(AsepritesheetPlugin::new(&["sprite.json"]))
-            .add_systems(OnEnter(GameState::Playing), spawn_player)
-            .add_systems(
-                Update,
-                (
-                    move_player,
-                    animate_player,
-                    flip_player,
-                    player_shoot,
-                    update_bullets,
-                    hurt_player,
-                    kill_player,
-                )
-                    .run_if(in_state(GameState::Playing)),
-            );
+        // TODO: Move to assets plugin
+        app.add_plugins(AsepritesheetPlugin::new(&["sprite.json"]));
+
+        // Setup
+        app.add_systems(OnEnter(GameState::Playing), spawn_player);
+
+        // Playing state
+        app.add_systems(
+            Update,
+            (
+                move_player,
+                animate_player,
+                flip_player,
+                player_shoot,
+                update_bullets,
+                hurt_player,
+                kill_player,
+            )
+                .run_if(in_state(GameState::Playing)),
+        );
+
+        // Upgrade state
+        app.add_systems(
+            Update,
+            (animate_player, update_bullets, pause_move).run_if(in_state(GameState::Upgrade)),
+        );
+    }
+}
+
+fn pause_move(mut query: Query<(&mut Velocity, &mut Player)>) {
+    for (mut vel, mut player) in &mut query {
+        player.state.moving = false;
+        vel.linvel = Vec2::ZERO;
     }
 }
 

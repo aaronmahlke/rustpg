@@ -22,21 +22,37 @@ pub struct EnemyPlugin;
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(OnEnter(GameState::Playing), setup_enemy_timer)
-            .add_systems(OnExit(GameState::Playing), cleanup)
-            .add_systems(
-                Update,
-                ((
-                    spawn_enemies,
-                    move_enemy,
-                    hurt_enemy,
-                    flip_enemy,
-                    animate_enemy,
-                    kill_enemy,
-                    cleanup_dead,
-                )
-                    .chain()
-                    .run_if(in_state(GameState::Playing)),),
-            );
+            .add_systems(OnExit(GameState::Playing), cleanup);
+
+        // Playing
+        app.add_systems(
+            Update,
+            ((
+                spawn_enemies,
+                move_enemy,
+                hurt_enemy,
+                flip_enemy,
+                animate_enemy,
+                kill_enemy,
+                cleanup_dead,
+            )
+                .chain()
+                .run_if(in_state(GameState::Playing)),),
+        );
+
+        // Upgrade
+        app.add_systems(
+            Update,
+            (animate_enemy, pause_move, cleanup_dead).run_if(in_state(GameState::Upgrade)),
+        );
+    }
+}
+
+fn pause_move(mut query: Query<(&mut Velocity, &mut Enemy), With<Enemy>>) {
+    for (mut vel, mut enemy) in &mut query {
+        enemy.state.moving = false;
+        enemy.state.attack = false;
+        vel.linvel = Vec2::ZERO;
     }
 }
 

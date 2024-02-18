@@ -16,6 +16,9 @@ pub struct PlayMusicEvent {
     pub looping: bool,
 }
 
+#[derive(Event)]
+pub struct StopSoundEvent;
+
 impl Default for PlayMusicEvent {
     fn default() -> Self {
         Self {

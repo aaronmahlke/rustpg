@@ -1,6 +1,6 @@
 use crate::{
     audio::{
-        components::{MusicType, PlayMusicEvent},
+        components::{MusicType, PlayMusicEvent, StopSoundEvent},
         systems::AjmAudioPlugin,
     },
     debug::fps::FPSPlugin,
@@ -23,8 +23,12 @@ impl Plugin for GameStatePlugin {
 
         // Menu Music
         app.add_systems(OnEnter(GameState::Menu), setup_state_menu);
+
         // Game Music
         app.add_systems(OnEnter(GameState::Playing), setup_state_playing);
+
+        // Upgade Music
+        app.add_systems(OnEnter(GameState::Upgrade), setup_state_upgrade);
     }
 }
 
@@ -38,6 +42,17 @@ fn setup_state_menu(mut sound_event: EventWriter<PlayMusicEvent>) {
 fn setup_state_playing(mut sound_event: EventWriter<PlayMusicEvent>) {
     sound_event.send(PlayMusicEvent {
         sound: MusicType::Game,
+        looping: true,
+    });
+}
+
+fn setup_state_upgrade(
+    mut sound_event: EventWriter<PlayMusicEvent>,
+    mut stop_sound_event: EventWriter<StopSoundEvent>,
+) {
+    stop_sound_event.send(StopSoundEvent);
+    sound_event.send(PlayMusicEvent {
+        sound: MusicType::Menu,
         looping: true,
     });
 }

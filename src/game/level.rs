@@ -9,8 +9,9 @@ impl Plugin for LevelPlugin {
     }
 }
 
-fn level_up(mut game: ResMut<GameRules>) {
+fn level_up(mut game: ResMut<GameRules>, mut next_state: ResMut<NextState<GameState>>) {
     if game.xp >= game.get_level_xp() {
+        next_state.set(GameState::Upgrade);
         let current_level = game.level;
         game.set_level(current_level + 1);
         game.level_xp_multiplier += 0.2;
