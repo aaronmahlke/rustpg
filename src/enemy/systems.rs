@@ -1,4 +1,4 @@
-use bevy::gizmos;
+
 use bevy::sprite::Anchor;
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_asepritesheet::prelude::*;
@@ -76,7 +76,7 @@ fn spawn_enemies(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
-    mut gizmos: Gizmos,
+    _gizmos: Gizmos,
 ) {
     let spritesheet_handle = load_spritesheet_then(
         &mut commands,
@@ -118,7 +118,7 @@ fn spawn_enemies(
                 let random_y = rand::random::<f32>() * window.height();
                 Vec2::new(random_x, random_y)
             };
-            let no_so_random = Vec2::new(window.width(), window.height());
+            let _no_so_random = Vec2::new(window.width(), window.height());
             let Some(world_coordinates) =
                 camera.viewport_to_world_2d(camera_transform, random_coordinates)
             else {

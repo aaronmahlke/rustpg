@@ -15,7 +15,7 @@ pub mod window;
 pub mod xp;
 
 use bevy::prelude::*;
-use bevy_rapier2d::render::RapierDebugRenderPlugin;
+
 use game::systems::GameStatePlugin;
 
 fn main() {

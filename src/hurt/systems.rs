@@ -55,7 +55,7 @@ fn tick_hurt_timer(mut query: Query<&mut HurtTimer>, time: Res<Time>) {
     }
 }
 
-fn start_hurt(mut commands: Commands, query: Query<Entity, (Added<Hurting>)>) {
+fn start_hurt(mut commands: Commands, query: Query<Entity, Added<Hurting>>) {
     for entity in query.iter() {
         commands
             .entity(entity)
