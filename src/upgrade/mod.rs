@@ -3,8 +3,8 @@ use bevy::prelude::*;
 pub mod components;
 pub mod systems;
 
-pub struct PowerupsPlugin;
+pub struct UpgradePlugin;
 
-impl Plugin for PowerupsPlugin {
+impl Plugin for UpgradePlugin {
     fn build(&self, _app: &mut App) {}
 }

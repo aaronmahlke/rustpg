@@ -1,6 +1,4 @@
-
-
-struct Powerup {
+struct Upgrade {
     name: String,
 }
 
