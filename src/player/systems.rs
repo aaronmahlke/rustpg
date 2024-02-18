@@ -28,14 +28,16 @@ impl Plugin for PlayerPlugin {
         app.add_systems(
             Update,
             (
+                cleanup_dead,
+                kill_player,
+                hurt_player,
                 move_player,
                 animate_player,
                 flip_player,
                 player_shoot,
                 update_bullets,
-                hurt_player,
-                kill_player,
             )
+                .chain()
                 .run_if(in_state(GameState::Playing)),
         );
 
@@ -256,9 +258,9 @@ fn player_shoot(
                 // spawn bullet
                 let bullet = Bullet {
                     direction,
-                    speed: 500.0,
-                    size: 10.0,
-                    damage: 10.0,
+                    speed: player.stats.bullet_speed,
+                    size: player.stats.bullet_damage * 5.0,
+                    damage: player.stats.bullet_damage,
                 };
 
                 // Rectangle
@@ -339,7 +341,7 @@ fn hurt_player(
 
 fn kill_player(
     mut commands: Commands,
-    mut player_query: Query<(Entity, &Health, &mut Velocity), With<Player>>,
+    mut player_query: Query<(Entity, &Health, &mut Velocity), (With<Player>, Without<Dead>)>,
 ) {
     for (entity, health, mut velocity) in &mut player_query {
         if health.current <= 0.0 {
@@ -351,7 +353,26 @@ fn kill_player(
 
             velocity.linvel = Vec2::ZERO;
 
-            println!("Player is dead");
+            // println!("Player is dead");
+        }
+    }
+}
+
+fn cleanup_dead(
+    mut commands: Commands,
+    player_query: Query<Entity, (With<Player>, With<Dead>)>,
+    parent_query: Query<&Parent, &Transform>,
+    mut animation_events: EventReader<AnimFinishEvent>,
+    mut next_state: ResMut<NextState<GameState>>,
+) {
+    for event in animation_events.read() {
+        for parent in parent_query.iter_ancestors(event.entity) {
+            let player_entity = player_query.get(parent);
+            if let Ok(entity) = player_entity {
+                println!("Player death animation finished");
+                next_state.set(GameState::Menu);
+                commands.entity(entity).despawn_recursive();
+            }
         }
     }
 }

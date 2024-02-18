@@ -16,5 +16,13 @@ fn level_up(mut game: ResMut<GameRules>, mut next_state: ResMut<NextState<GameSt
         game.set_level(current_level + 1);
         game.level_xp_multiplier += 0.2;
         game.xp = 0;
+
+        //supstract more in the beginning to make the game harder faster
+        //
+        if current_level < 5 {
+            game.enemy_spawn_interval -= 0.3;
+        } else {
+            game.enemy_spawn_interval -= 0.1;
+        }
     }
 }

@@ -18,6 +18,7 @@ pub struct GameRules {
     pub level_xp_base: u32,
     // the amount of additonal xp the player neeeds per level (multiplied)
     pub level_xp_multiplier: f32,
+    pub enemy_spawn_interval: f32,
 }
 
 impl Default for GameRules {
@@ -27,6 +28,7 @@ impl Default for GameRules {
             level: 0,
             level_xp_base: 10,
             level_xp_multiplier: 1.0,
+            enemy_spawn_interval: 2.0,
         }
     }
 }
@@ -42,5 +44,12 @@ impl GameRules {
 
     pub fn set_xp(&mut self, xp: u32) {
         self.xp = xp;
+    }
+
+    pub fn reset(&mut self) {
+        self.xp = 0;
+        self.level = 0;
+        self.level_xp_multiplier = 1.0;
+        self.enemy_spawn_interval = 2.0;
     }
 }

@@ -39,13 +39,14 @@ fn camera_follow_system(
     mut query: Query<(&CameraFollow, &mut Transform), With<Camera>>,
     target_query: Query<&Transform, (With<Target>, Without<Camera>)>,
 ) {
-    let target_transform = target_query.single(); // Assuming there is only one target
-    for (camera_follow, mut transform) in query.iter_mut() {
-        let direction = target_transform.translation - transform.translation;
-        let acceleration = direction * camera_follow.acceleration;
+    if let Ok(target_transform) = target_query.get_single() {
+        for (camera_follow, mut transform) in query.iter_mut() {
+            let direction = target_transform.translation - transform.translation;
+            let acceleration = direction * camera_follow.acceleration;
 
-        // Apply smoothing
-        let velocity = acceleration * time.delta_seconds();
-        transform.translation += velocity / camera_follow.smoothness;
+            // Apply smoothing
+            let velocity = acceleration * time.delta_seconds();
+            transform.translation += velocity / camera_follow.smoothness;
+        }
     }
 }

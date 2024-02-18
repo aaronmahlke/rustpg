@@ -1,4 +1,3 @@
-
 use bevy::sprite::Anchor;
 use bevy::{prelude::*, window::PrimaryWindow};
 use bevy_asepritesheet::prelude::*;
@@ -10,7 +9,7 @@ use super::resources::*;
 use crate::audio::components::{PlaySoundEffectEvent, SoundEffectType};
 use crate::base::components::WINDOW_PADDING;
 use crate::damagable::components::Damageable;
-use crate::game::components::GameState;
+use crate::game::components::{GameRules, GameState};
 use crate::health::components::{Dead, Health};
 use crate::hurt::components::*;
 use crate::particle::components::Particle;
@@ -56,9 +55,10 @@ fn pause_move(mut query: Query<(&mut Velocity, &mut Enemy), With<Enemy>>) {
     }
 }
 
-fn setup_enemy_timer(mut commands: Commands) {
+fn setup_enemy_timer(mut commands: Commands, game: Res<GameRules>) {
+    println!("Setting up enemy timer: {} sec", game.enemy_spawn_interval);
     commands.spawn(EnemySpawnTimer(Timer::from_seconds(
-        0.2,
+        game.enemy_spawn_interval,
         TimerMode::Repeating,
     )));
 }
@@ -135,8 +135,8 @@ fn spawn_enemies(
                     RigidBody::Dynamic,
                     Damageable,
                     Health {
-                        max: 10.0,
-                        current: 10.0,
+                        max: 3.0,
+                        current: 3.0,
                     },
                     Velocity::zero(),
                     ActiveEvents::COLLISION_EVENTS,

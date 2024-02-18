@@ -34,15 +34,23 @@ impl Plugin for GameStatePlugin {
     }
 }
 
-fn setup_state_menu(mut sound_event: EventWriter<PlayMusicEvent>) {
+fn setup_state_menu(
+    mut sound_event: EventWriter<PlayMusicEvent>,
+    audio: Res<Audio>,
+    mut game: ResMut<GameRules>,
+) {
+    audio.stop();
     sound_event.send(PlayMusicEvent {
         sound: MusicType::Menu,
         looping: true,
         fade_in: 1000,
     });
+
+    game.reset();
 }
 
-fn setup_state_playing(mut sound_event: EventWriter<PlayMusicEvent>) {
+fn setup_state_playing(mut sound_event: EventWriter<PlayMusicEvent>, audio: Res<Audio>) {
+    audio.stop();
     sound_event.send(PlayMusicEvent {
         sound: MusicType::Game,
         looping: true,
