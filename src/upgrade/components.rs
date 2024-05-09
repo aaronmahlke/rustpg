@@ -1,63 +1,19 @@
-struct Upgrade {
-    name: String,
+use bevy::prelude::*;
+
+pub struct Upgrade {
+    pub name: String,
+    pub description: String,
+    pub upgrade_type: UpgradeType,
 }
 
-pub struct MoveSpeed {
-    pub value: f32,
+pub struct UpgradeType {
+    damage: f32,
+    move_speed: f32,
+    shot_speed: f32,
+    effect: EffectType,
 }
 
-pub struct ShotSpeed {
-    pub value: f32,
-}
-
-pub struct DamageAdd {
-    pub value: f32,
-}
-
-pub struct DamageMult {
-    pub value: f32,
-}
-
-pub struct SplitShot {
-    pub value: f32,
-}
-
-pub struct IceShot {
-    pub value: f32,
-}
-
-pub struct FireShot {
-    pub value: f32,
-}
-
-pub struct PoisonShot {
-    pub value: f32,
-}
-
-pub struct LightningShot {
-    pub value: f32,
-}
-
-pub struct HomingShot {
-    pub value: f32,
-}
-
-pub struct PiercingShot {
-    pub value: f32,
-}
-
-pub struct BouncingShot {
-    pub value: f32,
-}
-
-pub struct ExplosiveShot {
-    pub value: f32,
-}
-
-pub struct PickupRangeAdd {
-    pub value: f32,
-}
-
-pub struct Shield {
-    pub value: f32,
+pub enum EffectType {
+    Fire,
+    Ice,
 }

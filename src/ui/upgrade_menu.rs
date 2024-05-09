@@ -5,7 +5,7 @@ use crate::{
     game::components::GameState,
 };
 
-use super::components::{ButtonStyle, TagUpgradeMenu};
+use super::components::{ButtonStyle, TagUpgradeMenu, UpgradeButtonAction};
 
 #[derive(Bundle)]
 pub struct UpgradeCardBundle {
@@ -52,7 +52,7 @@ pub fn setup_menu(mut commands: Commands) {
         ))
         .with_children(|parent| {
             parent
-                .spawn(UpgradeCardBundle::new())
+                .spawn((UpgradeCardBundle::new(), UpgradeButtonAction::Upgrade1))
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
                         "Upgrade 1",
@@ -65,7 +65,7 @@ pub fn setup_menu(mut commands: Commands) {
                 });
 
             parent
-                .spawn(UpgradeCardBundle::new())
+                .spawn((UpgradeCardBundle::new(), UpgradeButtonAction::Upgrade2))
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
                         "Upgrade 2",
@@ -78,7 +78,7 @@ pub fn setup_menu(mut commands: Commands) {
                 });
 
             parent
-                .spawn(UpgradeCardBundle::new())
+                .spawn((UpgradeCardBundle::new(), UpgradeButtonAction::Upgrade3))
                 .with_children(|parent| {
                     parent.spawn(TextBundle::from_section(
                         "Upgrade 3",

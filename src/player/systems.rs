@@ -352,8 +352,6 @@ fn kill_player(
             commands.entity(entity).remove::<Damageable>();
 
             velocity.linvel = Vec2::ZERO;
-
-            // println!("Player is dead");
         }
     }
 }

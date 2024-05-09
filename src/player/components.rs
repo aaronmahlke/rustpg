@@ -1,7 +1,6 @@
 use bevy::prelude::*;
 
 use crate::base::components::*;
-
 #[derive(Component)]
 pub struct Bullet {
     pub direction: Vec3,

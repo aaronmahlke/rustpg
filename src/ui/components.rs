@@ -26,6 +26,13 @@ pub struct ButtonForeground {
     pub active: Color,
 }
 
+#[derive(Component)]
+pub enum UpgradeButtonAction {
+    Upgrade1,
+    Upgrade2,
+    Upgrade3,
+}
+
 impl Default for ButtonStyle {
     fn default() -> Self {
         ButtonStyle {
