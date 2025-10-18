@@ -1,4 +1,4 @@
-use bevy::{prelude::*, sprite::Anchor};
+use bevy::{prelude::*, sprite::Anchor, window::PrimaryWindow};
 use bevy_asepritesheet::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -105,6 +105,10 @@ fn spawn_player(
         .with_children(|parent| {
             parent.spawn((
                 Collider::ball(player.stats.size * 3.0),
+                CollisionGroups::new(
+                    Group::GROUP_1,               // Player group
+                    Group::ALL & !Group::GROUP_2, // Can collide with everything except bullets
+                ),
                 TransformBundle::from(Transform::from_xyz(0.0, -5.0, 0.0)),
                 TagPlayer,
             ));
@@ -255,37 +259,75 @@ fn player_shoot(
                     sound: SoundEffectType::PlayerShoot,
                 });
                 shoot_timer.reset();
-                // spawn bullet
-                let bullet = Bullet {
-                    direction,
-                    speed: player.stats.bullet_speed,
-                    size: player.stats.bullet_damage * 5.0,
-                    damage: player.stats.bullet_damage,
-                };
 
-                // Rectangle
-                commands.spawn((
-                    SpriteBundle {
-                        sprite: Sprite {
-                            color: Color::rgb(255., 0., 0.),
-                            custom_size: Some(Vec2::new(bullet.size, bullet.size)),
+                // Calculate cone spread for multishot
+                let bullet_count = player.stats.multishot;
+                let max_cone_angle = std::f32::consts::PI; // 180 degrees max cone
+
+                for i in 0..bullet_count {
+                    let mut bullet_direction = direction;
+
+                    if bullet_count > 1 {
+                        // Calculate spread angle - more bullets = wider cone, up to 180 degrees
+                        let cone_angle = (bullet_count as f32 - 1.0) * (max_cone_angle / 10.0);
+                        let cone_angle = cone_angle.min(max_cone_angle);
+
+                        // Calculate angle offset for this bullet
+                        let angle_step = if bullet_count > 1 {
+                            cone_angle / (bullet_count - 1) as f32
+                        } else {
+                            0.0
+                        };
+                        let angle_offset = -cone_angle / 2.0 + i as f32 * angle_step;
+
+                        // Rotate the direction vector
+                        let cos_angle = angle_offset.cos();
+                        let sin_angle = angle_offset.sin();
+
+                        bullet_direction = Vec3::new(
+                            direction.x * cos_angle - direction.y * sin_angle,
+                            direction.x * sin_angle + direction.y * cos_angle,
+                            0.0,
+                        );
+                    }
+
+                    let bullet = Bullet {
+                        direction: bullet_direction,
+                        speed: player.stats.bullet_speed,
+                        size: player.stats.bullet_damage * 5.0,
+                        damage: player.stats.bullet_damage,
+                        piercing: player.stats.piercing,
+                        hits_remaining: player.stats.piercing + 1,
+                    };
+
+                    // Spawn bullet
+                    commands.spawn((
+                        SpriteBundle {
+                            sprite: Sprite {
+                                color: Color::rgb(255., 0., 0.),
+                                custom_size: Some(Vec2::new(bullet.size, bullet.size)),
+                                ..default()
+                            },
+                            transform: Transform::from_translation(Vec3::new(
+                                translation_with_offset.x,
+                                translation_with_offset.y,
+                                0.0,
+                            )),
                             ..default()
                         },
-                        transform: Transform::from_translation(Vec3::new(
-                            translation_with_offset.x,
-                            translation_with_offset.y,
-                            0.0,
-                        )),
-                        ..default()
-                    },
-                    RigidBody::Dynamic,
-                    Velocity::zero(),
-                    Collider::ball(bullet.size),
-                    BulletDespawnTimer(Timer::from_seconds(3.0, TimerMode::Once)),
-                    ActiveEvents::COLLISION_EVENTS,
-                    Damage(bullet.damage),
-                    bullet,
-                ));
+                        RigidBody::Dynamic,
+                        Velocity::zero(),
+                        Collider::ball(bullet.size),
+                        CollisionGroups::new(
+                            Group::GROUP_2,               // Bullet group
+                            Group::ALL & !Group::GROUP_2, // Can collide with everything except other bullets
+                        ),
+                        BulletDespawnTimer(Timer::from_seconds(1.5, TimerMode::Once)),
+                        ActiveEvents::COLLISION_EVENTS,
+                        Damage(bullet.damage),
+                        bullet,
+                    ));
+                }
             }
         }
 
@@ -296,18 +338,52 @@ fn player_shoot(
 fn update_bullets(
     mut commands: Commands,
     time: Res<Time>,
-    mut query: Query<(&Bullet, &mut BulletDespawnTimer, Entity, &mut Velocity)>,
+    mut query: Query<(
+        &Bullet,
+        &mut BulletDespawnTimer,
+        Entity,
+        &mut Velocity,
+        &Transform,
+    )>,
+    camera_query: Query<(&Camera, &GlobalTransform)>,
+    window_query: Query<&Window, With<PrimaryWindow>>,
 ) {
-    for (bullet, mut despawn_timer, entity, mut vel) in &mut query {
+    let Ok((camera, camera_transform)) = camera_query.get_single() else {
+        return;
+    };
+    let Ok(window) = window_query.get_single() else {
+        return;
+    };
+
+    for (bullet, mut despawn_timer, entity, mut vel, transform) in &mut query {
         despawn_timer.0.tick(time.delta());
 
         if despawn_timer.0.just_finished() {
             commands.entity(entity).despawn();
+            continue;
+        }
+
+        // Despawn bullets that go off-screen relative to camera (performance optimization)
+        let bullet_pos = transform.translation;
+        let Some(bullet_screen_pos) = camera.world_to_viewport(camera_transform, bullet_pos) else {
+            // If we can't project to screen, it's probably off-screen
+            commands.entity(entity).despawn();
+            continue;
+        };
+
+        // Add some padding beyond screen edges
+        let padding = 200.0;
+        if bullet_screen_pos.x < -padding
+            || bullet_screen_pos.x > window.width() + padding
+            || bullet_screen_pos.y < -padding
+            || bullet_screen_pos.y > window.height() + padding
+        {
+            commands.entity(entity).despawn();
+            continue;
         }
 
         let movement = bullet.direction * bullet.speed;
         let move_delta: Vec2 = Vec2::new(movement.x, movement.y);
-
         vel.linvel = move_delta;
     }
 }

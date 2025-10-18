@@ -19,6 +19,13 @@ pub struct GameRules {
     // the amount of additonal xp the player neeeds per level (multiplied)
     pub level_xp_multiplier: f32,
     pub enemy_spawn_interval: f32,
+    // enemy scaling factors (linear)
+    pub enemy_health_base: f32,
+    pub enemy_health_per_level: f32,
+    pub enemy_damage_base: f32,
+    pub enemy_damage_per_level: f32,
+    pub enemy_speed_base: f32,
+    pub enemy_speed_per_level: f32,
 }
 
 impl Default for GameRules {
@@ -28,7 +35,13 @@ impl Default for GameRules {
             level: 0,
             level_xp_base: 10,
             level_xp_multiplier: 1.0,
-            enemy_spawn_interval: 2.0,
+            enemy_spawn_interval: 1.5,
+            enemy_health_base: 3.0,
+            enemy_health_per_level: 3.0,
+            enemy_damage_base: 1.0,
+            enemy_damage_per_level: 0.8,
+            enemy_speed_base: 100.0,
+            enemy_speed_per_level: 20.0,
         }
     }
 }
@@ -46,10 +59,28 @@ impl GameRules {
         self.xp = xp;
     }
 
+    pub fn get_enemy_health(&self) -> f32 {
+        self.enemy_health_base + (self.level as f32 * self.enemy_health_per_level)
+    }
+
+    pub fn get_enemy_damage(&self) -> f32 {
+        self.enemy_damage_base + (self.level as f32 * self.enemy_damage_per_level)
+    }
+
+    pub fn get_enemy_speed(&self) -> f32 {
+        self.enemy_speed_base + (self.level as f32 * self.enemy_speed_per_level)
+    }
+
     pub fn reset(&mut self) {
         self.xp = 0;
         self.level = 0;
         self.level_xp_multiplier = 1.0;
-        self.enemy_spawn_interval = 2.0;
+        self.enemy_spawn_interval = 1.5;
+        self.enemy_health_base = 3.0;
+        self.enemy_health_per_level = 3.0;
+        self.enemy_damage_base = 1.0;
+        self.enemy_damage_per_level = 0.8;
+        self.enemy_speed_base = 100.0;
+        self.enemy_speed_per_level = 20.0;
     }
 }

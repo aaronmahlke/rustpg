@@ -7,6 +7,8 @@ pub struct Bullet {
     pub speed: f32,
     pub size: f32,
     pub damage: f32,
+    pub piercing: u32,
+    pub hits_remaining: u32,
 }
 
 #[derive(Component)]
@@ -26,6 +28,9 @@ pub struct PlayerStats {
     pub bullet_speed: f32,
     pub bullet_damage: f32,
     pub move_speed: f32,
+    pub pickup_range: f32,
+    pub multishot: u32,
+    pub piercing: u32,
 }
 
 pub struct PlayerState {
@@ -54,6 +59,9 @@ impl Default for Player {
                 move_speed: 300.0,
                 bullet_speed: 500.0,
                 bullet_damage: 1.0,
+                pickup_range: 50.0,
+                multishot: 1,
+                piercing: 0,
             },
         }
     }

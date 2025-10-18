@@ -27,11 +27,10 @@ impl Plugin for UIPlugin {
             .add_systems(OnExit(GameState::Menu), main_menu::cleanup_menu);
 
         // Upgrade Menu
-        app.add_systems(OnEnter(GameState::Upgrade), upgrade_menu::setup_menu)
-            .add_systems(
-                Update,
-                upgrade_menu::update_menu.run_if(in_state(GameState::Upgrade)),
-            )
-            .add_systems(OnExit(GameState::Upgrade), upgrade_menu::cleanup_menu);
+        app.add_systems(
+            Update,
+            upgrade_menu::update_menu.run_if(in_state(GameState::Upgrade)),
+        )
+        .add_systems(OnExit(GameState::Upgrade), upgrade_menu::cleanup_menu);
     }
 }

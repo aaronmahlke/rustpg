@@ -9,7 +9,9 @@ use crate::hurt::systems::HurtPlugin;
 use crate::particle::systems::ParticlePlugin;
 use crate::player::systems::PlayerPlugin;
 use crate::ui::UIPlugin;
+use crate::upgrade::UpgradePlugin;
 use crate::xp::systems::XPPlugin;
+
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
@@ -27,6 +29,7 @@ impl Plugin for GamePlugin {
                 HurtPlugin,
                 CameraPlugin,
                 XPPlugin,
+                UpgradePlugin,
                 ParticlePlugin,
                 UIPlugin,
                 LevelPlugin,

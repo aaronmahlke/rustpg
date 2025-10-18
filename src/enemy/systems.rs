@@ -76,6 +76,8 @@ fn spawn_enemies(
     camera_query: Query<(&Camera, &GlobalTransform)>,
     time: Res<Time>,
     asset_server: Res<AssetServer>,
+    game: Res<GameRules>,
+    enemy_count_query: Query<&Enemy>,
     _gizmos: Gizmos,
 ) {
     let spritesheet_handle = load_spritesheet_then(
@@ -94,8 +96,13 @@ fn spawn_enemies(
 
     let window = window_query.get_single().unwrap();
     let (camera, camera_transform) = camera_query.single();
+
+    // Limit enemy count to prevent performance issues
+    let enemy_count = enemy_count_query.iter().count();
+    let max_enemies = 200; // Adjust this based on performance needs
+
     for mut timer in &mut query {
-        if timer.0.tick(time.delta()).just_finished() {
+        if timer.0.tick(time.delta()).just_finished() && enemy_count < max_enemies {
             let horizontal = rand::random::<bool>();
 
             let ver_flip = rand::random::<bool>();
@@ -250,21 +257,39 @@ fn hurt_enemy(
     mut enemy_collider_query: Query<Entity, With<TagEnemy>>,
     enemy_query: Query<&Transform, (With<Enemy>, Without<Player>)>,
     parent_query: Query<&Parent, &Transform>,
-    damage_query: Query<(Entity, &Damage), With<Bullet>>,
+    mut bullet_query: Query<(Entity, &Damage, &mut Bullet), With<Bullet>>,
     rapier_context: Res<RapierContext>,
     mut sound_event: EventWriter<PlaySoundEffectEvent>,
+    time: Res<Time>,
 ) {
+    // Rate limit sound effects - only play every 0.1 seconds
+    static mut LAST_SOUND_TIME: f32 = 0.0;
+    let current_time = time.elapsed_seconds();
+    unsafe {
+        if current_time - LAST_SOUND_TIME < 0.1 {
+            // Skip sound this frame
+        } else {
+            LAST_SOUND_TIME = current_time;
+        }
+    }
+    let should_play_sound = unsafe { current_time - LAST_SOUND_TIME <= 0.001 };
     for _ in collision_events.read() {
         for enemy_collider_entity in &mut enemy_collider_query {
-            for (damage_entity, damage_source) in &damage_query {
+            for (bullet_entity, damage_source, mut bullet) in &mut bullet_query {
                 if let Some(contact_pair) =
-                    rapier_context.contact_pair(damage_entity, enemy_collider_entity)
+                    rapier_context.contact_pair(bullet_entity, enemy_collider_entity)
                 {
                     for parent in parent_query.iter_ancestors(enemy_collider_entity) {
                         let enemy_transform = enemy_query.get(parent).unwrap();
 
-                        // despawn damage source
-                        commands.entity(damage_entity).despawn();
+                        // Handle piercing: decrease hits remaining
+                        bullet.hits_remaining = bullet.hits_remaining.saturating_sub(1);
+
+                        // Only despawn bullet if no hits remaining
+                        if bullet.hits_remaining == 0 {
+                            commands.entity(bullet_entity).despawn();
+                        }
+
                         commands.entity(parent).insert(Hurting(damage_source.0));
 
                         let mut normal: Vec2 = Vec2::ZERO;
@@ -273,10 +298,12 @@ fn hurt_enemy(
                             normal = manifold.normal();
                         }
 
-                        // play sound effect
-                        sound_event.send(PlaySoundEffectEvent {
-                            sound: SoundEffectType::EnemyHurt,
-                        });
+                        // play sound effect (rate limited)
+                        if should_play_sound {
+                            sound_event.send(PlaySoundEffectEvent {
+                                sound: SoundEffectType::EnemyHurt,
+                            });
+                        }
 
                         // Spawn 3-5 particles in the opposite direction of the collision normal
 

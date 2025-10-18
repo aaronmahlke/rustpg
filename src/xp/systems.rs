@@ -88,7 +88,7 @@ fn move_xp_to_player(
             let velocity = acceleration * time.delta_seconds();
             let velocity = velocity * (distance / 35.0);
 
-            if distance > player.stats.size + 40.0 {
+            if distance > player.stats.pickup_range {
                 xp_transform.translation -= velocity / smoothness;
                 // let xp shrink as it gets closer to the player
                 let scale = distance / 100.0;

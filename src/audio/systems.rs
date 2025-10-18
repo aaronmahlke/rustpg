@@ -54,7 +54,7 @@ fn play_sound_effect_system(
     audio_assets: Res<GameAudioAssets>,
 ) {
     for event in play_sound_event_reader.read() {
-        println!("Playing sound: {:?}", event.sound);
+        // println!("Playing sound: {:?}", event.sound);
         audio.play(audio_assets.get_sound_effect(&event.sound));
     }
 }
